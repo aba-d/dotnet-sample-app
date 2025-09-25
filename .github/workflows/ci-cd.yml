@@ -82,7 +82,7 @@ jobs:
     with:
       app-language: csharp
       project-path: 'src/dotnet-sample-app'
-      dockerfile-path: '.docker/Dockerfile'
+      dockerfile-path: 'docker/Dockerfile'
       language-version: '8.0'
       environment: 'dev'
     secrets: inherit
