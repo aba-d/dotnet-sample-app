@@ -39,9 +39,9 @@ EXPOSE $PORT
 
 # ---------- Stage 6: Dynamic entrypoint ----------
 CMD ["sh", "-c", "\
-if [ \"$APP_LANGUAGE\" = 'csharp' ]; then \
-    DLL_FILE=$(ls *.runtimeconfig.json | sed 's/\.runtimeconfig\.json$/.dll/' | head -n 1); \
-    exec dotnet $DLL_FILE; \
+if [ "$APP_LANGUAGE" = "csharp" ]; then \
+    DLL_FILE=$(ls *.runtimeconfig.json | sed "s/\.runtimeconfig\.json$/.dll/") ; \
+    exec dotnet "$DLL_FILE" ; \
 elif [ \"$APP_LANGUAGE\" = 'java' ]; then \
     JAR_FILE=$(ls *.jar | head -n 1); \
     PROFILE=${ENVIRONMENT:-default}; \
