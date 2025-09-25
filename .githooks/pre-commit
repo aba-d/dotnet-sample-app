@@ -1,17 +1,18 @@
 #!/bin/bash
 # Run Maven build and tests before commit
 
-echo "🔹 Running Maven build and tests..."
-mvn clean package -DskipTests
+echo "🔹 Running Dot Net build and tests..."
+dotnet restore
+dotnet build
 if [ $? -ne 0 ]; then
-    echo "❌ Maven build failed! Commit aborted."
+    echo "❌ Dot Net build failed! Commit aborted."
     exit 1
 fi
 
-mvn test
+dotnet test
 if [ $? -ne 0 ]; then
     echo "❌ Unit tests failed! Commit aborted."
     exit 1
 fi
 
-echo "✅ Maven build and tests passed. Proceeding with commit."
+echo "✅ Dot Net build and tests passed. Proceeding with commit."
