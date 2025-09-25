@@ -38,20 +38,24 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 EXPOSE $PORT
 
 # ---------- Stage 6: Dynamic entrypoint ----------
-CMD ["sh", "-c", "\
+# Dynamic entrypoint for all languages
+CMD sh -c '\
 if [ "$APP_LANGUAGE" = "csharp" ]; then \
-    DLL_FILE=$(ls *.runtimeconfig.json | sed "s/\.runtimeconfig\.json$/.dll/"); \
-    exec dotnet "$DLL_FILE"; \
-elif [ \"$APP_LANGUAGE\" = 'java' ]; then \
-    JAR_FILE=$(ls *.jar | head -n 1); \
-    PROFILE=${ENVIRONMENT:-default}; \
-    exec java -jar $JAR_FILE --spring.profiles.active=$PROFILE; \
-elif [ \"$APP_LANGUAGE\" = 'node' ]; then \
-    ENTRY_FILE=$(ls *.js | head -n 1); \
-    exec node $ENTRY_FILE; \
-elif [ \"$APP_LANGUAGE\" = 'python' ]; then \
-    ENTRY_FILE=$(ls *.py | head -n 1); \
-    exec python $ENTRY_FILE; \
+    DLL_FILE=$(ls *.runtimeconfig.json 2>/dev/null | sed "s/\.runtimeconfig\.json$/.dll/") ; \
+    if [ -z "$DLL_FILE" ]; then echo "No DLL found"; exit 1; fi ; \
+    exec dotnet "$DLL_FILE" ; \
+elif [ "$APP_LANGUAGE" = "java" ]; then \
+    JAR_FILE=$(ls *.jar 2>/dev/null | head -n 1) ; \
+    if [ -z "$JAR_FILE" ]; then echo "No JAR found"; exit 1; fi ; \
+    exec java -jar "$JAR_FILE" --spring.profiles.active=${ENVIRONMENT:-default} ; \
+elif [ "$APP_LANGUAGE" = "node" ]; then \
+    ENTRY_FILE=$(ls *.js 2>/dev/null | head -n 1) ; \
+    if [ -z "$ENTRY_FILE" ]; then echo "No JS file found"; exit 1; fi ; \
+    exec node "$ENTRY_FILE" ; \
+elif [ "$APP_LANGUAGE" = "python" ]; then \
+    ENTRY_FILE=$(ls *.py 2>/dev/null | head -n 1) ; \
+    if [ -z "$ENTRY_FILE" ]; then echo "No PY file found"; exit 1; fi ; \
+    exec python "$ENTRY_FILE" ; \
 else \
-    echo \"Unsupported language: $APP_LANGUAGE\"; exit 1; \
-fi"]
+    echo "Unsupported language: $APP_LANGUAGE" ; exit 1 ; \
+fi'
