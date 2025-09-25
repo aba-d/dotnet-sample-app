@@ -81,7 +81,7 @@ jobs:
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/docker-build-push.yml@main
     with:
       app-language: csharp
-      project-path: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
+      project-path: 'dotnet-sample-app/dotnet-sample-app.csproj'
       dockerfile-path: '.docker/Dockerfile'
       language-version: '8.0'
       environment: 'dev'
