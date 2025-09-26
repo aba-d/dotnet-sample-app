@@ -49,7 +49,7 @@ jobs:
   # Veracode
   # ------------------------
   Veracode-scan:
-    name: Veracode SAST
+    name: Veracode SAST & Quality Gate
     needs: Codeql-scan
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
     with:
@@ -60,7 +60,7 @@ jobs:
   # Sonarqube scan
   # ------------------------
   Sonarqube-scan:
-    name: Tests Coverage
+    name: SonarQube Coverage & Quality Gate
     needs: Codeql-scan
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template.yml@main
     with:
