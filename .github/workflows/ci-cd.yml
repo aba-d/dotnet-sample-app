@@ -105,15 +105,16 @@ jobs:
   # # ------------------------
   # # Deploy to QA (requires approval)
   # # ------------------------
-#   ecs-deploy-qa:
-#     name: Deploy to QA
-#     needs: ecs-deploy-dev
-#     if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
-#     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-template.yml@main
-#     with:
-#       environment: qa
-#       app-language: csharp
-#     secrets: inherit
+  ecs-deploy-qa:
+    name: Deploy to QA
+    needs: ecs-deploy-dev
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-template.yml@main
+    with:
+      environment: qa
+      app-language: csharp
+      extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"QA\"}]'
+    secrets: inherit
 
   # ------------------------
   # Notify the Jira
