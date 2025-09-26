@@ -35,7 +35,7 @@ jobs:
   # Code Scan (Codeql)
   # ------------------------
   Codeql-scan:
-    name: GHAS scan
+    name: GHAS Scan
     needs: Repository-Contribution-Compliance
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
     with:
@@ -53,20 +53,19 @@ jobs:
     needs: Codeql-scan
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
     with:
-      run-veracode-gate-check: "no"
+      run-veracode-gate-check: "yes"
     secrets: inherit
   
   # ------------------------
   # Sonarqube scan
   # ------------------------
   Sonarqube-scan:
-    name: Test Coverage
+    name: Tests Coverage
     needs: Codeql-scan
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template.yml@main
     with:
       projectKey: 'org-testfordemo_dotnet-sample-app'
       organizationKey: org-testfordemo
-      run-sonarqube-gate-check: "no"
       projectSlnPath: "dotnet-sample-app.sln"
       testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
     secrets:
@@ -94,7 +93,7 @@ jobs:
   
   ecs-deploy-dev:
     needs: ci
-    name: Deploy to Dev - Single Image
+    name: Deploy to Dev
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-template.yml@main
     with:
       environment: dev
@@ -149,15 +148,13 @@ jobs:
   # # ------------------------
   # # Deploy to Prod (requires approval)
   # # ------------------------
-  # ecs-deploy-prod:
-  #   name: Deploy to Prod
-  #   needs: ecs-deploy-qa
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-taskservice-template.yml@main
-  #   with:
-  #     service-name: ${{ vars.SERVICE_NAME }}
-  #     task-family: ${{ vars.TASK_FAMILY }}
-  #     container-name: ${{ vars.CONTAINER_NAME }}
-  #     desired-count: ${{ vars.DESIRED_COUNT }}
-  #     image-tag: ${{ github.sha }}
-  #     environment: prod
-  #   secrets: inherit
+#    ecs-deploy-prod:
+#     name: Deploy to QA
+#     needs: ecs-deploy-dev
+#     if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+#     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-template.yml@main
+#     with:
+#       environment: Prod
+#       app-language: csharp
+#       extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Production\"}]'
+#     secrets: inherit
