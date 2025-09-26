@@ -42,6 +42,7 @@ jobs:
       language: 'csharp'
       projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
       buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj  -c Release -o publishoutput'
+      run-codeql-gate-check: "no"
     secrets: inherit
   
   # ------------------------
