@@ -6,6 +6,7 @@ ORG_KEY="org-testfordemo"
 PROJECT_KEY="org-testfordemo_dotnet-sample-app"
 SONAR_HOST="https://sonarcloud.io"
 SONAR_TOKEN="bb79ddc2d2ede4c5adbfb9ba148b18faf404f222"
+TEST_PROJECT_PATH="src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
 
 echo "🚀 Starting SonarScanner analysis..."
 
@@ -23,7 +24,7 @@ dotnet sonarscanner begin \
 dotnet build --configuration Release
 
 # 3️⃣ Run tests with coverage
-dotnet test ./dotnet-ecs-sample.Tests/dotnet-ecs-sample.Tests.csproj \
+dotnet test $TEST_PROJECT_PATH \
   --collect:"XPlat Code Coverage" \
   --results-directory ./coverage \
   -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
