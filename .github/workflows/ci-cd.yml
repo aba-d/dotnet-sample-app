@@ -47,13 +47,13 @@ jobs:
   # ------------------------
   # Veracode
   # ------------------------
-  # Veracode-scan:
-  #   name: Veracode SAST
-  #   needs: Codeql-scan
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
-  #   with:
-  #     run-veracode-gate-check: "no"
-  #   secrets: inherit
+  Veracode-scan:
+    name: Veracode SAST
+    needs: Codeql-scan
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
+    with:
+      run-veracode-gate-check: "no"
+    secrets: inherit
   
   # ------------------------
   # Sonarqube scan
@@ -77,7 +77,7 @@ jobs:
   # # ------------------------
   ci:
     name: Build, Scan and Push Image to ECR
-    # needs: [Sonarqube-scan, Veracode-scan]
+    needs: [Sonarqube-scan, Veracode-scan]
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/docker-build-push.yml@main
     with:
       app-language: csharp
