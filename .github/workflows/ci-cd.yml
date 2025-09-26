@@ -34,15 +34,15 @@ jobs:
   # ------------------------
   # Code Scan (Codeql)
   # ------------------------
-  # Codeql-scan:
-  #   name: GHAS scan
-  #   needs: commit-check
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
-  #   with:
-  #     language: 'java'   # change from 'csharp' to 'java'
-  #     projectPath: 'sample-java-ecs/pom.xml'   # path to your Java project pom.xml
-  #     buildCommand: 'mvn clean package -DskipTests'       # command to build your Java project
-  #   secrets: inherit
+  Codeql-scan:
+    name: GHAS scan
+    needs: commit-check
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
+    with:
+      language: 'csharp'
+      projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
+      buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj  -c Release -o publishoutput'
+    secrets: inherit
   
   # ------------------------
   # Veracode
@@ -58,19 +58,19 @@ jobs:
   # ------------------------
   # Sonarqube scan
   # ------------------------
-  # Sonarqube-scan:
-  #   name: Test Coverage
-  #   needs: Codeql-scan
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template.yml@main
-  #   with:
-  #     projectKey: 'org-testfordemo_myapp-netcore'
-  #     organizationKey: org-testfordemo
-  #     run-sonarqube-gate-check: "no"
-  #     projectSlnPath: "demogitactions.sln"
-  #     testProjectPath: "dotnet-ecs-sample.Tests/dotnet-ecs-sample.Tests.csproj"
-  #   secrets:
-  #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  Sonarqube-scan:
+    name: Test Coverage
+    needs: Codeql-scan
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template.yml@main
+    with:
+      projectKey: 'org-testfordemo_dotnet-sample-app'
+      organizationKey: org-testfordemo
+      run-sonarqube-gate-check: "no"
+      projectSlnPath: "dotnet-sample-app.sln"
+      testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   # # ------------------------
   # # CI Stage (Build Image and Push to ECR)
@@ -91,14 +91,14 @@ jobs:
   # Deploy to Dev (auto) ECS Task + Service
   # ------------------------
   
-#   ecs-deploy-dev:
-#     needs: ci
-#     name: Deploy to Dev - Single Image
-#     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-template.yml@main
-#     with:
-#       environment: dev
-#       app-language: csharp
-#     secrets: inherit
+  ecs-deploy-dev:
+    needs: ci
+    name: Deploy to Dev - Single Image
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-template.yml@main
+    with:
+      environment: dev
+      app-language: csharp
+    secrets: inherit
       
   # # ------------------------
   # # Deploy to QA (requires approval)
