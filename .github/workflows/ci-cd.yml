@@ -35,13 +35,13 @@ jobs:
   # Code Scan (Codeql)
   # ------------------------
   Codeql-scan:
-    name: GHAS Scan
+    name: GHAS Scan & Quality Gate
     needs: Repository-Contribution-Compliance
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
     with:
       language: 'csharp'
       projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
-      buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj  -c Release -o publishoutput'
+      buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
       run-codeql-gate-check: "no"
     secrets: inherit
   
@@ -50,7 +50,7 @@ jobs:
   # ------------------------
   Veracode-scan:
     name: Veracode SAST & Quality Gate
-    needs: Codeql-scan
+    needs: Repository-Contribution-Compliance
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
     with:
       run-veracode-gate-check: "yes"
@@ -61,13 +61,16 @@ jobs:
   # ------------------------
   Sonarqube-scan:
     name: SonarQube Coverage & Quality Gate
-    needs: Codeql-scan
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template.yml@main
+    needs:  Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-template-m.yml@main
     with:
       projectKey: 'org-testfordemo_dotnet-sample-app'
       organizationKey: org-testfordemo
       projectSlnPath: "dotnet-sample-app.sln"
       testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
+      language: 'csharp'
+      language-version: '8.0'
+      run-sonarqube-gate-check: 'no'
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
