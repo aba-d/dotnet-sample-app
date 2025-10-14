@@ -3,7 +3,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -13,23 +13,23 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// ✅ Health check endpoint before HTTPS redirection
+app.MapGet("/health", () => Results.Ok(new { status = "UP" }));
 
-app.UseHttpsRedirection();
+// Only apply HTTPS redirection for non-health requests
+app.MapWhen(
+    context => !context.Request.Path.StartsWithSegments("/health"),
+    branch =>
+    {
+        branch.UseHttpsRedirection();
+    }
+);
+
 app.UseAuthorization();
 app.MapControllers();
 
-// ✅ Add endpoint to show current environment
-app.MapGet("/env", () =>
-{
-    var env = app.Environment.EnvironmentName;
-    return $"Application is running in {env} environment.";
-});
+// Endpoint to show current environment
+app.MapGet("/env", () => $"Application is running in {app.Environment.EnvironmentName} environment.");
 
 app.Run();
 
