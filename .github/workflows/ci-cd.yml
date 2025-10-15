@@ -108,7 +108,7 @@ jobs:
       main-listener-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f"
       use-temp-listener: true
       temp-listener-port: "8081"
-      auto-flip: true   # set to true if you want to flip automatically
+      manual-flip: true   # set to true if you want to flip automatically
     secrets: inherit
       
   # # ------------------------
