@@ -13,17 +13,6 @@ on:
       - Integration
       - develop
 
-env:
-  App_Language: "csharp"
-  Extra_Env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Development\"}]'
-  Blue_Target_Group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8"
-  Green_Target_Group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c"
-  Alb_Arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d"
-  Main_Listener_Arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f"
-  Use_Temp_Listener: true
-  Temp_Listener_Port: "8081"
-  Manual_Flip: false
-
 permissions:
   security-events: write
   actions: read
@@ -111,14 +100,14 @@ jobs:
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
     with:
       environment: "dev"
-      app-language: ${{ env.App_Language }}
-      extra-env: ${{ env.Extra_Env }}
-      blue-target-group: "${{ env.Blue_Target_Group }}"
-      green-target-group: "${{ env.Green_Target_Group }}"
-      alb-arn: "${{ env.Alb_Arn }}"
-      main-listener-arn: "${{ env.Main_Listener_Arn }}"
-      use-temp-listener: ${{ env.Use_Temp_Listener }}
-      temp-listener-port: "${{ env.Temp_Listener_Port }}"
+      app-language: "csharp"
+      extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Development\"}]'
+      blue-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8"
+      green-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c"
+      alb-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d"
+      main-listener-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f"
+      use-temp-listener: true
+      temp-listener-port: "8081"
     secrets: inherit
 
   Flip-Traffic:
@@ -127,11 +116,11 @@ jobs:
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/manual-promotion.yml@Feature-BlueGreen
     with:
       environment: "dev"
-      main-listener-arn: "${{ env.Main_Listener_Arn }}"
-      blue-target-group: "${{ env.Blue_Target_Group }}"
-      green-target-group: "${{ env.Green_Target_Group }}"
-      use-temp-listener: ${{ env.Use_Temp_Listener }}
-      manual-flip: ${{ env.Manual_Flip }}
+      main-listener-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f"
+      blue-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8"
+      green-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c"
+      manual-flip: false
+      temp-listener-arn: ${{ needs.ecs-deploy-dev.outputs.TEMP_LISTENER_ARN }}
     secrets: inherit
       
   # # ------------------------
