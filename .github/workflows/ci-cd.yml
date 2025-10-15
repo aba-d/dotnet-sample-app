@@ -168,4 +168,3 @@ jobs:
 #       app-language: csharp
 #       extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Production\"}]'
 #     secrets: inherit
-
