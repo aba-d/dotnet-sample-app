@@ -122,7 +122,7 @@ jobs:
       manual-flip: false
       temp-listener-arn: ${{ needs.ecs-deploy-dev.outputs.TEMP_LISTENER_ARN }}
     secrets: inherit
-      
+
   # # ------------------------
   # # Deploy to QA (requires approval)
   # # ------------------------
