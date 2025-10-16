@@ -125,6 +125,7 @@ jobs:
       is-first-deploy: ${{ needs.ecs-deploy-dev.outputs.IS_FIRST_DEPLOY }}
     secrets: inherit
 
+    
   # # ------------------------
   # # Deploy to QA (requires approval)
   # # ------------------------
