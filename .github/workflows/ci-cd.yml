@@ -123,7 +123,8 @@ jobs:
       idle-tg: ${{ needs.ecs-deploy-dev.outputs.IDLE_TG }}
       idle-service: ${{ needs.ecs-deploy-dev.outputs.IDLE_SERVICE }}
       is-first-deploy: ${{ fromJSON(needs.ecs-deploy-dev.outputs.IS_FIRST_DEPLOY) }}
-      live-service: ${{ fromJSON(needs.ecs-deploy-dev.outputs.LIVE_SERVICE) }}
+      live-service: ${{ needs.ecs-deploy-dev.outputs.LIVE_SERVICE}}
+
     secrets: inherit
 
 
