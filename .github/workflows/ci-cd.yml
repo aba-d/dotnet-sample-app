@@ -122,7 +122,7 @@ jobs:
       temp-listener-arn: ${{ needs.ecs-deploy-dev.outputs.TEMP_LISTENER_ARN }}
       idle-tg: ${{ needs.ecs-deploy-dev.outputs.IDLE_TG }}
       idle-service: ${{ needs.ecs-deploy-dev.outputs.IDLE_SERVICE }}
-      # active-service: ${{ needs.ecs-deploy-dev.outputs.ACTIVE_SERVICE }}
+      is-first-deploy: ${{ needs.ecs-deploy-dev.outputs.IS_FIRST_DEPLOY }}
     secrets: inherit
 
   # # ------------------------
