@@ -121,8 +121,8 @@ jobs:
       green-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c"
       temp-listener-arn: ${{ needs.ecs-deploy-dev.outputs.TEMP_LISTENER_ARN }}
       idle-tg: ${{ needs.ecs-deploy-dev.outputs.IDLE_TG }}
-      idel-color: ${{ needs.ecs-deploy-dev.outputs.IDLE_COLOR }}
-      active-color: ${{ needs.ecs-deploy-dev.outputs.ACTIVE_COLOR }}
+      idle-service: ${{ needs.ecs-deploy-dev.outputs.IDLE_SERVICE }}
+      # active-service: ${{ needs.ecs-deploy-dev.outputs.ACTIVE_SERVICE }}
     secrets: inherit
 
   # # ------------------------
