@@ -59,21 +59,21 @@ jobs:
   # # ------------------------
   # # Sonarqube scan
   # # ------------------------
-  # Sonarqube-scan:
-  #   name: SonarQube Coverage & Quality Gate
-  #   needs:  Repository-Contribution-Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-template-m.yml@main
-  #   with:
-  #     projectKey: 'org-testfordemo_dotnet-sample-app'
-  #     organizationKey: org-testfordemo
-  #     projectSlnPath: "dotnet-sample-app.sln"
-  #     testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
-  #     language: 'dotnet'
-  #     language-version: '8.0'
-  #     run-sonarqube-gate-check: 'no'
-  #   secrets:
-  #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  Sonarqube-scan:
+    name: SonarQube Coverage & Quality Gate
+    # needs:  Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-template-new.yml@main
+    with:
+      projectKey: 'org-testfordemo_dotnet-sample-app'
+      organizationKey: org-testfordemo
+      projectSlnPath: "dotnet-sample-app.sln"
+      testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
+      language: 'dotnet'
+      language-version: '8.0'
+      run-sonarqube-gate-check: 'no'
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   # # ------------------------
   # # CI Stage (Build Image and Push to ECR)
@@ -94,38 +94,38 @@ jobs:
   # Deploy to Dev (auto) ECS Task + Service
   # ------------------------
   
-  ecs-deploy-dev:
-    # needs: ci
-    name: Deploy to Dev
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
-    with:
-      environment: "dev"
-      app-language: "csharp"
-      extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Development\"}]'
-      blue-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8"
-      green-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c"
-      alb-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d"
-      main-listener-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f"
-      use-temp-listener: true
-      temp-listener-port: "8081"
-    secrets: inherit
+  # ecs-deploy-dev:
+  #   # needs: ci
+  #   name: Deploy to Dev
+  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
+  #   with:
+  #     environment: "dev"
+  #     app-language: "csharp"
+  #     extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Development\"}]'
+  #     blue-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8"
+  #     green-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c"
+  #     alb-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d"
+  #     main-listener-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f"
+  #     use-temp-listener: true
+  #     temp-listener-port: "8081"
+  #   secrets: inherit
 
-  Switch-Traffic:
-    needs: ecs-deploy-dev
-    name: Switch Traffic to Live
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/manual-promotion.yml@Feature-BlueGreen
-    with:
-      environment: "dev"
-      main-listener-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f"
-      blue-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8"
-      green-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c"
-      temp-listener-arn: ${{ needs.ecs-deploy-dev.outputs.TEMP_LISTENER_ARN }}
-      idle-tg: ${{ needs.ecs-deploy-dev.outputs.IDLE_TG }}
-      idle-service: ${{ needs.ecs-deploy-dev.outputs.IDLE_SERVICE }}
-      is-first-deploy: ${{ fromJSON(needs.ecs-deploy-dev.outputs.IS_FIRST_DEPLOY) }}
-      live-service: ${{ needs.ecs-deploy-dev.outputs.LIVE_SERVICE}}
+  # Switch-Traffic:
+  #   needs: ecs-deploy-dev
+  #   name: Switch Traffic to Live
+  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/manual-promotion.yml@Feature-BlueGreen
+  #   with:
+  #     environment: "dev"
+  #     main-listener-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f"
+  #     blue-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8"
+  #     green-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c"
+  #     temp-listener-arn: ${{ needs.ecs-deploy-dev.outputs.TEMP_LISTENER_ARN }}
+  #     idle-tg: ${{ needs.ecs-deploy-dev.outputs.IDLE_TG }}
+  #     idle-service: ${{ needs.ecs-deploy-dev.outputs.IDLE_SERVICE }}
+  #     is-first-deploy: ${{ fromJSON(needs.ecs-deploy-dev.outputs.IS_FIRST_DEPLOY) }}
+  #     live-service: ${{ needs.ecs-deploy-dev.outputs.LIVE_SERVICE}}
 
-    secrets: inherit
+  #   secrets: inherit
 
 
   # # ------------------------
