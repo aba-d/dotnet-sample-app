@@ -68,8 +68,8 @@ jobs:
       organizationKey: org-testfordemo
       projectSlnPath: "dotnet-sample-app.sln"
       testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
-      language: 'dotnet'
-      language-version: '8.0'
+      # language: 'dotnet'
+      # language-version: '8.0'
       run-sonarqube-gate-check: 'no'
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
