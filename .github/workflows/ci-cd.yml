@@ -62,7 +62,7 @@ jobs:
   Sonarqube-scan:
     name: SonarQube Coverage & Quality Gate
     # needs:  Repository-Contribution-Compliance
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-template-new.yml@main
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template-new.yml@main
     with:
       projectKey: 'org-testfordemo_dotnet-sample-app'
       organizationKey: org-testfordemo
