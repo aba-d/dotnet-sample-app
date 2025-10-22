@@ -129,8 +129,8 @@ jobs:
 
   Check-Approval:
     name: Check for approval and rejection in QA Deployment
-    needs: ecs-deploy-dev
-    if: needs.ecs-deploy-dev == 'success'
+    needs: Switch-Traffic
+    # if: needs.Switch-Traffic == 'success'
     environment: qa
     continue-on-error: true
     runs-on: ubuntu-latest
