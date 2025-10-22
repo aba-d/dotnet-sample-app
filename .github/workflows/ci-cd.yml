@@ -24,44 +24,44 @@ jobs:
   # # ------------------------
   # # Repository Contribution Compliance Gate
   # # ------------------------
-  # Repository-Contribution-Compliance:
-  #   name: Repo Contribution Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
-  #   with:
-  #     base_branch: main
-  #     jira_prefix: "SCRUM|PROJ|scrum|proj"
+  Repository-Contribution-Compliance:
+    name: Repo Contribution Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
+    with:
+      base_branch: main
+      jira_prefix: "SCRUM|PROJ|scrum|proj"
   
   # # ------------------------
   # # Code Scan (Codeql)
   # # ------------------------
-  # Codeql-scan:
-  #   name: GHAS Scan & Quality Gate
-  #   needs: Repository-Contribution-Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
-  #   with:
-  #     language: 'csharp'
-  #     projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
-  #     buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
-  #     run-codeql-gate-check: "no"
-  #   secrets: inherit
+  Codeql-scan:
+    name: GHAS Scan & Quality Gate
+    needs: Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
+    with:
+      language: 'csharp'
+      projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
+      buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
+      run-codeql-gate-check: "no"
+    secrets: inherit
   
   # # ------------------------
   # # Veracode
   # # ------------------------
-  # Veracode-scan:
-  #   name: Veracode SAST & Quality Gate
-  #   needs: Repository-Contribution-Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
-  #   with:
-  #     run-veracode-gate-check: "yes"
-  #   secrets: inherit
+  Veracode-scan:
+    name: Veracode SAST & Quality Gate
+    needs: Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
+    with:
+      run-veracode-gate-check: "yes"
+    secrets: inherit
   
   # # ------------------------
   # # Sonarqube scan
   # # ------------------------
   Sonarqube-scan:
     name: SonarQube Coverage & Quality Gate
-    # needs:  Repository-Contribution-Compliance
+    needs:  Repository-Contribution-Compliance
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template-new.yml@Feature-BlueGreen
     with:
       projectKey: 'org-testfordemo_dotnet-sample-app'
@@ -78,24 +78,24 @@ jobs:
   # # ------------------------
   # # CI Stage (Build Image and Push to ECR)
   # # ------------------------
-  # ci:
-  #   name: Build, Scan and Push Image to ECR
-  #   # needs: [Sonarqube-scan, Veracode-scan, Codeql-scan]
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/docker-build-push.yml@main
-  #   with:
-  #     app-language: csharp
-  #     project-path: 'src/dotnet-sample-app'
-  #     dockerfile-path: 'docker/Dockerfile'
-  #     language-version: '8.0'
-  #     environment: 'dev'
-  #   secrets: inherit
+  ci:
+    name: Build, Scan and Push Image to ECR
+    needs: [Sonarqube-scan, Veracode-scan, Codeql-scan]
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/docker-build-push.yml@main
+    with:
+      app-language: csharp
+      project-path: 'src/dotnet-sample-app'
+      dockerfile-path: 'docker/Dockerfile'
+      language-version: '8.0'
+      environment: 'dev'
+    secrets: inherit
 
   # ------------------------
   # Deploy to Dev (auto) ECS Task + Service
   # ------------------------
   
   ecs-deploy-dev:
-    needs: Sonarqube-scan
+    needs: ci
     name: Deploy to Dev
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
     with:
