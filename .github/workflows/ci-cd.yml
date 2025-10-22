@@ -95,7 +95,7 @@ jobs:
   # ------------------------
   
   ecs-deploy-dev:
-    # needs: ci
+    needs: Sonarqube-scan
     name: Deploy to Dev
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
     with:
