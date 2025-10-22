@@ -96,7 +96,7 @@ jobs:
   Prisma-Image-scan:
     name: Prisma Image Scan & Quality Gate
     needs: ci
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/prisma-scan-template.yml@Feature-BlueGreen
     with:
       run-veracode-gate-check: "yes"
     secrets: inherit
