@@ -95,7 +95,7 @@ jobs:
   # # ------------------------
   Prisma-Image-scan:
     name: Prisma Image Scan & Quality Gate
-    needs: Repository-Contribution-Compliance
+    needs: ci
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
     with:
       run-veracode-gate-check: "yes"
@@ -105,7 +105,7 @@ jobs:
   # Deploy to Dev (auto) ECS Task + Service
   # ------------------------
   ecs-deploy-dev:
-    needs: ci
+    needs: Prisma-Image-scan
     name: Deploy to Dev
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
     with:
