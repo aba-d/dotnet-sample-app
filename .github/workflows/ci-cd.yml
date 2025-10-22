@@ -55,7 +55,7 @@ jobs:
     with:
       run-veracode-gate-check: "yes"
     secrets: inherit
-  
+
   # # ------------------------
   # # Sonarqube scan
   # # ------------------------
@@ -90,10 +90,20 @@ jobs:
       environment: 'dev'
     secrets: inherit
 
+  # # ------------------------
+  # # Veracode
+  # # ------------------------
+  Prisma-Image-scan:
+    name: Prisma Image Scan & Quality Gate
+    needs: Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
+    with:
+      run-veracode-gate-check: "yes"
+    secrets: inherit
+
   # ------------------------
   # Deploy to Dev (auto) ECS Task + Service
   # ------------------------
-  
   ecs-deploy-dev:
     needs: ci
     name: Deploy to Dev
