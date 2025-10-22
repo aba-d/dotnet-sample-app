@@ -110,7 +110,6 @@ jobs:
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
     with:
       environment: "dev"
-      app-language: "csharp"
       extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Development\"}]'
     secrets: inherit
 
