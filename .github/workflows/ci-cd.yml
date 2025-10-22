@@ -152,6 +152,22 @@ jobs:
   #     extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"QA\"}]'
   #   secrets: inherit
 
+   ecs-deploy-qa:
+    needs: ecs-deploy-dev
+    name: Deploy to QA
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
+    with:
+      environment: "qa"
+      app-language: "csharp"
+      extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Development\"}]'
+      blue-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8"
+      green-target-group: "arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c"
+      alb-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d"
+      main-listener-arn: "arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f"
+      use-temp-listener: true
+      temp-listener-port: "8081"
+    secrets: inherit
+
   # ------------------------
   # Notify the Jira
   # ------------------------
