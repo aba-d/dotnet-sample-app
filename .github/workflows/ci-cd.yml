@@ -98,7 +98,7 @@ jobs:
     needs: ci
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/prisma-scan-template.yml@Feature-BlueGreen
     with:
-      run-veracode-gate-check: "yes"
+      run-prisma-gate-check: "yes"
     secrets: inherit
 
   # ------------------------
