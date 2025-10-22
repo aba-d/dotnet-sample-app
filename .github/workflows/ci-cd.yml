@@ -127,6 +127,17 @@ jobs:
       live-service: ${{ needs.ecs-deploy-dev.outputs.LIVE_SERVICE}}
     secrets: inherit
 
+  Check-Approval:
+    name: Check for approval and rejection in QA Deployment
+    needs: ecs-deploy-dev
+    if: needs.ecs-deploy-dev == 'success'
+    environment: qa
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Failure Step
+        run: |
+          echo "No failures in Dev Deployment"
 
   # # ------------------------
   # # Deploy to QA (requires approval)
