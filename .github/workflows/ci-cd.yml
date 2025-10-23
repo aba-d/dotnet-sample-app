@@ -243,7 +243,7 @@ jobs:
         id: set-output
         # Set true if approved, false if rejected
         run: |
-          QA_APPROVE="${{ github.event.inputs.qa_approve || 'false' }}"
+          QA_APPROVE="${{ github.event.inputs.qa_approve }}"
           if [ "$QA_APPROVE" == "true" ]; then
             echo "approved=true" >> $GITHUB_OUTPUT
           else
@@ -277,10 +277,12 @@ jobs:
       - name: Prod approval placeholder
         id: set-output
         run: |
-          if [ "${{ github.event.inputs.prod_approve }}" == "true" ]; then
+          PROD_APPROVE="${{ github.event.inputs.prod_approve }}"
+          if [ "$PROD_APPROVE" == "true" ]; then
             echo "approved=true" >> $GITHUB_OUTPUT
           else
             echo "approved=false" >> $GITHUB_OUTPUT
+          fi
 
   deploy-prod:
     runs-on: ubuntu-latest
