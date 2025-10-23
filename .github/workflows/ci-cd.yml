@@ -234,6 +234,7 @@ jobs:
   wait-for-qa-approval:
     runs-on: ubuntu-latest
     needs: deploy-dev
+    continue-on-error: true   # 👈 makes this job not fail the pipeline
     environment:
       name: qa
     outputs:
@@ -241,14 +242,14 @@ jobs:
     steps:
       - name: QA approval placeholder
         id: set-output
-        # Set true if approved, false if rejected
         run: |
-          QA_APPROVE="${{ github.event.inputs.qa_approve }}"
+          QA_APPROVE="${{ github.event.inputs.qa_approve || 'false' }}"
           if [ "$QA_APPROVE" == "true" ]; then
             echo "approved=true" >> $GITHUB_OUTPUT
           else
             echo "approved=false" >> $GITHUB_OUTPUT
           fi
+          echo "QA approval result: $QA_APPROVE"
 
   deploy-qa:
     runs-on: ubuntu-latest
@@ -264,11 +265,13 @@ jobs:
     if: ${{ needs.wait-for-qa-approval.outputs.approved != 'true' }}
     steps:
       - run: echo "❌ QA not approved or timed out — skipping deployment."
+      - run: echo "✅ QA step marked as successful (no deploy needed)."
 
   # --- Job 3: Prod Approval & Deploy ---
   wait-for-prod-approval:
     runs-on: ubuntu-latest
     needs: [deploy-qa, skip-qa]
+    continue-on-error: true   # 👈 prevents rejection from failing workflow
     environment:
       name: Prod
     outputs:
@@ -277,12 +280,13 @@ jobs:
       - name: Prod approval placeholder
         id: set-output
         run: |
-          PROD_APPROVE="${{ github.event.inputs.prod_approve }}"
+          PROD_APPROVE="${{ github.event.inputs.prod_approve || 'false' }}"
           if [ "$PROD_APPROVE" == "true" ]; then
             echo "approved=true" >> $GITHUB_OUTPUT
           else
             echo "approved=false" >> $GITHUB_OUTPUT
           fi
+          echo "Prod approval result: $PROD_APPROVE"
 
   deploy-prod:
     runs-on: ubuntu-latest
@@ -290,6 +294,7 @@ jobs:
     if: ${{ needs.wait-for-prod-approval.outputs.approved == 'true' }}
     steps:
       - run: echo "🚀 Deploying to Prod..."
+      - run: echo "✅ Prod deployment complete."
 
   skip-prod:
     runs-on: ubuntu-latest
@@ -297,3 +302,4 @@ jobs:
     if: ${{ needs.wait-for-prod-approval.outputs.approved != 'true' }}
     steps:
       - run: echo "❌ Prod not approved — skipping."
+      - run: echo "✅ Prod step marked as successful (no deploy needed)."
