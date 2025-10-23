@@ -230,77 +230,102 @@ jobs:
       - run: echo "🚀 Deploying to Dev environment..."
       - run: echo "✅ Dev deployment complete."
 
-  # --- Job 2: QA Approval & Deploy ---
-  wait-for-qa-approval:
-    runs-on: ubuntu-latest
+  qa-approval:
     needs: deploy-dev
-    continue-on-error: true   # 👈 makes this job not fail the pipeline
-    environment:
-      name: qa
-    outputs:
-      approved: ${{ steps.set-output.outputs.approved }}
-    steps:
-      - name: QA approval placeholder
-        id: set-output
-        run: |
-          QA_APPROVE="${{ github.event.inputs.qa_approve || 'false' }}"
-          if [ "$QA_APPROVE" == "true" ]; then
-            echo "approved=true" >> $GITHUB_OUTPUT
-          else
-            echo "approved=false" >> $GITHUB_OUTPUT
-          fi
-          echo "QA approval result: $QA_APPROVE"
-
-  deploy-qa:
     runs-on: ubuntu-latest
-    needs: wait-for-qa-approval
-    if: ${{ needs.wait-for-qa-approval.outputs.approved == 'true' }}
-    steps:
-      - run: echo "🚀 Deploying to QA environment..."
-      - run: echo "✅ QA deployment complete."
-
-  skip-qa:
-    runs-on: ubuntu-latest
-    needs: wait-for-qa-approval
-    if: ${{ needs.wait-for-qa-approval.outputs.approved != 'true' }}
-    steps:
-      - run: echo "❌ QA not approved or timed out — skipping deployment."
-      - run: echo "✅ QA step marked as successful (no deploy needed)."
-
-  # --- Job 3: Prod Approval & Deploy ---
-  wait-for-prod-approval:
-    runs-on: ubuntu-latest
-    needs: [deploy-qa, skip-qa]
-    if: always()    # 👈 ensures this job runs even if one of the previous is skipped
+    timeout-minutes: 5
     continue-on-error: true
-    environment:
-      name: Prod
-    outputs:
-      approved: ${{ steps.set-output.outputs.approved }}
     steps:
-      - name: Prod approval placeholder
-        id: set-output
-        run: |
-          PROD_APPROVE="${{ github.event.inputs.prod_approve || 'false' }}"
-          if [ "$PROD_APPROVE" == "true" ]; then
-            echo "approved=true" >> $GITHUB_OUTPUT
-          else
-            echo "approved=false" >> $GITHUB_OUTPUT
-          fi
-          echo "Prod approval result: $PROD_APPROVE"
+      - name: Wait for QA Approval
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const core = require('@actions/core');
+            const github = require('@actions/github');
+            core.notice('Waiting for QA approval...');
+            // Simulate waiting for approval (replace with real logic if needed)
+            await new Promise(resolve => setTimeout(resolve, 2 * 60 * 1000));
+            core.setFailed('No QA approval received in 2 minutes. Skipping QA deployment.');
 
-  deploy-prod:
+  deploy-qa-1:
+    needs: qa-approval
+    if: needs.qa-approval.result == 'success'
     runs-on: ubuntu-latest
-    needs: wait-for-prod-approval
-    if: ${{ needs.wait-for-prod-approval.outputs.approved == 'true' }}
     steps:
-      - run: echo "🚀 Deploying to Prod..."
-      - run: echo "✅ Prod deployment complete."
+      - name: Deploy to QA
+        run: echo "Deploying to QA..."
 
-  skip-prod:
-    runs-on: ubuntu-latest
-    needs: wait-for-prod-approval
-    if: ${{ needs.wait-for-prod-approval.outputs.approved != 'true' }}
-    steps:
-      - run: echo "❌ Prod not approved — skipping."
-      - run: echo "✅ Prod step marked as successful (no deploy needed)."
+  # # --- Job 2: QA Approval & Deploy ---
+  # wait-for-qa-approval:
+  #   runs-on: ubuntu-latest
+  #   needs: deploy-dev
+  #   continue-on-error: true   # 👈 makes this job not fail the pipeline
+  #   environment:
+  #     name: qa
+  #   outputs:
+  #     approved: ${{ steps.set-output.outputs.approved }}
+  #   steps:
+  #     - name: QA approval placeholder
+  #       id: set-output
+  #       run: |
+  #         QA_APPROVE="${{ github.event.inputs.qa_approve || 'false' }}"
+  #         if [ "$QA_APPROVE" == "true" ]; then
+  #           echo "approved=true" >> $GITHUB_OUTPUT
+  #         else
+  #           echo "approved=false" >> $GITHUB_OUTPUT
+  #         fi
+  #         echo "QA approval result: $QA_APPROVE"
+
+  # deploy-qa:
+  #   runs-on: ubuntu-latest
+  #   needs: wait-for-qa-approval
+  #   if: ${{ needs.wait-for-qa-approval.outputs.approved == 'true' }}
+  #   steps:
+  #     - run: echo "🚀 Deploying to QA environment..."
+  #     - run: echo "✅ QA deployment complete."
+
+  # skip-qa:
+  #   runs-on: ubuntu-latest
+  #   needs: wait-for-qa-approval
+  #   if: ${{ needs.wait-for-qa-approval.outputs.approved != 'true' }}
+  #   steps:
+  #     - run: echo "❌ QA not approved or timed out — skipping deployment."
+  #     - run: echo "✅ QA step marked as successful (no deploy needed)."
+
+  # # --- Job 3: Prod Approval & Deploy ---
+  # wait-for-prod-approval:
+  #   runs-on: ubuntu-latest
+  #   needs: [deploy-qa, skip-qa]
+  #   if: always()    # 👈 ensures this job runs even if one of the previous is skipped
+  #   continue-on-error: true
+  #   environment:
+  #     name: Prod
+  #   outputs:
+  #     approved: ${{ steps.set-output.outputs.approved }}
+  #   steps:
+  #     - name: Prod approval placeholder
+  #       id: set-output
+  #       run: |
+  #         PROD_APPROVE="${{ github.event.inputs.prod_approve || 'false' }}"
+  #         if [ "$PROD_APPROVE" == "true" ]; then
+  #           echo "approved=true" >> $GITHUB_OUTPUT
+  #         else
+  #           echo "approved=false" >> $GITHUB_OUTPUT
+  #         fi
+  #         echo "Prod approval result: $PROD_APPROVE"
+
+  # deploy-prod:
+  #   runs-on: ubuntu-latest
+  #   needs: wait-for-prod-approval
+  #   if: ${{ needs.wait-for-prod-approval.outputs.approved == 'true' }}
+  #   steps:
+  #     - run: echo "🚀 Deploying to Prod..."
+  #     - run: echo "✅ Prod deployment complete."
+
+  # skip-prod:
+  #   runs-on: ubuntu-latest
+  #   needs: wait-for-prod-approval
+  #   if: ${{ needs.wait-for-prod-approval.outputs.approved != 'true' }}
+  #   steps:
+  #     - run: echo "❌ Prod not approved — skipping."
+  #     - run: echo "✅ Prod step marked as successful (no deploy needed)."
