@@ -226,17 +226,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy-dev
     timeout-minutes: 10
-    # continue-on-error: true
     environment:
       name: qa
-      url: https://qa.example.com
+    outputs:
+      approved: ${{ steps.set-output.outputs.approved }}
     steps:
-      - run: echo "⏳ Waiting for QA approval (up to 10 min)..."
+      - name: QA approval placeholder
+        id: set-output
+        run: echo "approved=true" >> $GITHUB_OUTPUT
 
   deploy-qa:
     runs-on: ubuntu-latest
     needs: wait-for-qa-approval
-    if: ${{ needs.wait-for-qa-approval.conclusion == 'success' }}
+    if: ${{ needs.wait-for-qa-approval.outputs.approved == 'true' }}
     steps:
       - run: echo "🚀 Deploying to QA environment..."
       - run: echo "✅ QA deployment complete."
