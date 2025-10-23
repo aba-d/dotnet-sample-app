@@ -234,8 +234,9 @@ jobs:
         id: set-output
         # Set true if approved, false if rejected
         run: |
-          if [ "${{ github.event.inputs.qa_approve }}" == "true" ]; then
-          echo "approved=true" >> $GITHUB_OUTPUT
+          QA_APPROVE="${{ github.event.inputs.qa_approve || 'false' }}"
+          if [ "$QA_APPROVE" == "true" ]; then
+            echo "approved=true" >> $GITHUB_OUTPUT
           else
             echo "approved=false" >> $GITHUB_OUTPUT
           fi
