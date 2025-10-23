@@ -2,6 +2,11 @@ name: CI-CD Pipeline
 
 on:
   workflow_dispatch:
+    inputs:
+      qa_approve:
+        description: 'Approve QA deployment'
+        required: true
+        default: 'false'
   push:
     branches:
       - Feature-*
