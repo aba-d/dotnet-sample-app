@@ -233,7 +233,11 @@ jobs:
     steps:
       - name: QA approval placeholder
         id: set-output
-        run: echo "approved=true" >> $GITHUB_OUTPUT
+        run: |
+          if [ "${{ github.event.inputs.qa_approve }}" == "true" ]; then
+            echo "approved=true" >> $GITHUB_OUTPUT
+          else
+            echo "approved=false" >> $GITHUB_OUTPUT
 
   deploy-qa:
     runs-on: ubuntu-latest
@@ -254,25 +258,29 @@ jobs:
   wait-for-prod-approval:
     runs-on: ubuntu-latest
     needs: [deploy-qa, skip-qa]
-    timeout-minutes: 10
-    continue-on-error: true
     environment:
       name: Prod
-      url: https://prod.example.com
+    outputs:
+      approved: ${{ steps.set-output.outputs.approved }}
     steps:
-      - run: echo "⏳ Waiting for Prod approval (up to 10 min)..."
+      - name: Prod approval placeholder
+        id: set-output
+        run: |
+          if [ "${{ github.event.inputs.prod_approve }}" == "true" ]; then
+            echo "approved=true" >> $GITHUB_OUTPUT
+          else
+            echo "approved=false" >> $GITHUB_OUTPUT
 
   deploy-prod:
     runs-on: ubuntu-latest
     needs: wait-for-prod-approval
-    if: ${{ needs.wait-for-prod-approval.result == 'success' }}
+    if: ${{ needs.wait-for-prod-approval.outputs.approved == 'true' }}
     steps:
       - run: echo "🚀 Deploying to Prod..."
-      - run: echo "✅ Prod deployment complete."
 
   skip-prod:
     runs-on: ubuntu-latest
     needs: wait-for-prod-approval
-    if: ${{ needs.wait-for-prod-approval.result != 'success' }}
+    if: ${{ needs.wait-for-prod-approval.outputs.approved != 'true' }}
     steps:
-      - run: echo "❌ Prod not approved or timed out — skipping."
+      - run: echo "❌ Prod not approved — skipping."
