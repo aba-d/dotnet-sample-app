@@ -7,6 +7,10 @@ on:
         description: 'Approve QA deployment'
         required: true
         default: 'false'
+      prod_approve:
+        description: 'Approve Prod deployment'
+        required: true
+        default: 'false'
   push:
     branches:
       - Feature-*
