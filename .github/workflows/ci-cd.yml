@@ -271,7 +271,8 @@ jobs:
   wait-for-prod-approval:
     runs-on: ubuntu-latest
     needs: [deploy-qa, skip-qa]
-    continue-on-error: true   # 👈 prevents rejection from failing workflow
+    if: always()    # 👈 ensures this job runs even if one of the previous is skipped
+    continue-on-error: true
     environment:
       name: Prod
     outputs:
