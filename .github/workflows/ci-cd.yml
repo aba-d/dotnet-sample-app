@@ -235,9 +235,10 @@ jobs:
         # Set true if approved, false if rejected
         run: |
           if [ "${{ github.event.inputs.qa_approve }}" == "true" ]; then
-            echo "approved=true" >> $GITHUB_OUTPUT
+          echo "approved=true" >> $GITHUB_OUTPUT
           else
             echo "approved=false" >> $GITHUB_OUTPUT
+          fi
 
   deploy-qa:
     runs-on: ubuntu-latest
