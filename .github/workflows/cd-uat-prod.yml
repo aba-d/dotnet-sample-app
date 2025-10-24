@@ -2,7 +2,7 @@ name: CD to UAT/PROD
 
 on:
   workflow_run:
-    workflows: ["CI-Dev Pipeline"]
+    workflows: ["ci-dev.yml"]
     types:
       - completed
 
