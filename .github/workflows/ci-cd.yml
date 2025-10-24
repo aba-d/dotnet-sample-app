@@ -2,15 +2,15 @@ name: CI-CD Pipeline
 
 on:
   workflow_dispatch:
-    inputs:
-      qa_approve:
-        description: 'Approve QA deployment'
-        required: true
-        default: 'false'
-      prod_approve:
-        description: 'Approve Prod deployment'
-        required: true
-        default: 'false'
+    # inputs:
+    #   qa_approve:
+    #     description: 'Approve QA deployment'
+    #     required: true
+    #     default: 'false'
+    #   prod_approve:
+    #     description: 'Approve Prod deployment'
+    #     required: true
+    #     default: 'false'
   push:
     branches:
       - Feature-*
@@ -33,120 +33,109 @@ jobs:
   # # ------------------------
   # # Repository Contribution Compliance Gate
   # # ------------------------
-  # Repository-Contribution-Compliance:
-  #   name: Repo Contribution Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
-  #   with:
-  #     base_branch: main
-  #     jira_prefix: "SCRUM|PROJ|scrum|proj"
+  Repository-Contribution-Compliance:
+    name: Repo Contribution Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
+    with:
+      base_branch: main
+      jira_prefix: "SCRUM|PROJ|scrum|proj"
   
   # # # ------------------------
   # # # Code Scan (Codeql)
   # # # ------------------------
-  # Codeql-scan:
-  #   name: GHAS Scan & Quality Gate
-  #   needs: Repository-Contribution-Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
-  #   with:
-  #     language: 'csharp'
-  #     projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
-  #     buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
-  #     run-codeql-gate-check: "no"
-  #   secrets: inherit
+  Codeql-scan:
+    name: GHAS Scan & Quality Gate
+    needs: Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
+    with:
+      language: 'csharp'
+      projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
+      buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
+      run-codeql-gate-check: "no"
+    secrets: inherit
   
   # # # ------------------------
   # # # Veracode
   # # # ------------------------
-  # Veracode-scan:
-  #   name: Veracode SAST & Quality Gate
-  #   needs: Repository-Contribution-Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
-  #   with:
-  #     run-veracode-gate-check: "yes"
-  #   secrets: inherit
+  Veracode-scan:
+    name: Veracode SAST & Quality Gate
+    needs: Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
+    with:
+      run-veracode-gate-check: "yes"
+    secrets: inherit
 
   # # # ------------------------
   # # # Sonarqube scan
   # # # ------------------------
-  # Sonarqube-scan:
-  #   name: SonarQube Coverage & Quality Gate
-  #   needs:  Repository-Contribution-Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template-new.yml@Feature-BlueGreen
-  #   with:
-  #     projectKey: 'org-testfordemo_dotnet-sample-app'
-  #     organizationKey: org-testfordemo
-  #     projectSlnPath: "dotnet-sample-app.sln"
-  #     testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
-  #     # language: 'dotnet'
-  #     # language-version: '8.0'
-  #     run-sonarqube-gate-check: 'no'
-  #   secrets:
-  #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  Sonarqube-scan:
+    name: SonarQube Coverage & Quality Gate
+    needs:  Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template-new.yml@Feature-BlueGreen
+    with:
+      projectKey: 'org-testfordemo_dotnet-sample-app'
+      organizationKey: org-testfordemo
+      projectSlnPath: "dotnet-sample-app.sln"
+      testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
+      # language: 'dotnet'
+      # language-version: '8.0'
+      run-sonarqube-gate-check: 'no'
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   # # # ------------------------
   # # # CI Stage (Build Image and Push to ECR)
   # # # ------------------------
-  # ci:
-  #   name: Build, Scan and Push Image to ECR
-  #   needs: [Sonarqube-scan, Veracode-scan, Codeql-scan]
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/docker-build-push.yml@main
-  #   with:
-  #     app-language: csharp
-  #     project-path: 'src/dotnet-sample-app'
-  #     dockerfile-path: 'docker/Dockerfile'
-  #     language-version: '8.0'
-  #     environment: 'dev'
-  #   secrets: inherit
+  ci:
+    name: Build, Scan and Push Image to ECR
+    needs: [Sonarqube-scan, Veracode-scan, Codeql-scan]
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/docker-build-push.yml@main
+    with:
+      app-language: csharp
+      project-path: 'src/dotnet-sample-app'
+      dockerfile-path: 'docker/Dockerfile'
+      language-version: '8.0'
+      environment: 'dev'
+    secrets: inherit
 
   # # # ------------------------
   # # # Veracode
   # # # ------------------------
-  # Prisma-Image-scan:
-  #   name: Prisma Image Scan & Quality Gate
-  #   needs: ci
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/prisma-scan-template.yml@Feature-BlueGreen
-  #   with:
-  #     run-prisma-gate-check: "yes"
-  #   secrets: inherit
+  Prisma-Image-scan:
+    name: Prisma Image Scan & Quality Gate
+    needs: ci
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/prisma-scan-template.yml@Feature-BlueGreen
+    with:
+      run-prisma-gate-check: "yes"
+    secrets: inherit
 
   # ------------------------
   # Deploy to Dev (auto) ECS Task + Service
   # ------------------------
-  # ecs-deploy-dev:
-  #   # needs: Prisma-Image-scan
-  #   name: Deploy to Dev
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
-  #   with:
-  #     environment: "dev"
-  #     app-language: "csharp"
-  #     extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Development\"}]'
-  #   secrets: inherit
+  ecs-deploy-dev:
+    # needs: Prisma-Image-scan
+    name: Deploy to Dev
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
+    with:
+      environment: "dev"
+      app-language: "csharp"
+      extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Development\"}]'
+    secrets: inherit
 
-  # Switch-Traffic:
-  #   needs: ecs-deploy-dev
-  #   name: Switch Traffic to Live
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/manual-promotion.yml@Feature-BlueGreen
-  #   with:
-  #     environment: "dev"
-  #     temp-listener-arn: ${{ needs.ecs-deploy-dev.outputs.TEMP_LISTENER_ARN }}
-  #     idle-tg: ${{ needs.ecs-deploy-dev.outputs.IDLE_TG }}
-  #     idle-service: ${{ needs.ecs-deploy-dev.outputs.IDLE_SERVICE }}
-  #     is-first-deploy: ${{ fromJSON(needs.ecs-deploy-dev.outputs.IS_FIRST_DEPLOY) }}
-  #     live-service: ${{ needs.ecs-deploy-dev.outputs.LIVE_SERVICE}}
-  #   secrets: inherit
+  Switch-Traffic:
+    needs: ecs-deploy-dev
+    name: Switch Traffic to Live
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/manual-promotion.yml@Feature-BlueGreen
+    with:
+      environment: "dev"
+      temp-listener-arn: ${{ needs.ecs-deploy-dev.outputs.TEMP_LISTENER_ARN }}
+      idle-tg: ${{ needs.ecs-deploy-dev.outputs.IDLE_TG }}
+      idle-service: ${{ needs.ecs-deploy-dev.outputs.IDLE_SERVICE }}
+      is-first-deploy: ${{ fromJSON(needs.ecs-deploy-dev.outputs.IS_FIRST_DEPLOY) }}
+      live-service: ${{ needs.ecs-deploy-dev.outputs.LIVE_SERVICE}}
+    secrets: inherit
 
-  # Check-Approval:
-  #   name: Check for approval and rejection in QA Deployment
-  #   needs: Switch-Traffic
-  #   # if: needs.Switch-Traffic == 'success'
-  #   environment: qa
-  #   continue-on-error: true
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Test Failure Step
-  #       run: |
-  #         echo "No failures in Dev Deployment"
 
   # # ------------------------
   # # Deploy to QA (requires approval)
@@ -222,36 +211,36 @@ jobs:
 #       extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Production\"}]'
 #     secrets: inherit
 
-# --- Job 1: Auto deploy to Dev ---
-  deploy-dev:
-    runs-on: ubuntu-latest
-    environment: Dev
-    steps:
-      - run: echo "🚀 Deploying to Dev environment..."
-      - run: echo "✅ Dev deployment complete."
+# # --- Job 1: Auto deploy to Dev ---
+#   deploy-dev:
+#     runs-on: ubuntu-latest
+#     environment: Dev
+#     steps:
+#       - run: echo "🚀 Deploying to Dev environment..."
+#       - run: echo "✅ Dev deployment complete."
 
-  qa-approval:
-    needs: deploy-dev
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    continue-on-error: true
-    steps:
-      - name: Wait for QA Approval
-        uses: actions/github-script@v7
-        with:
-          script: |
-            core.notice('Waiting for QA approval...');
-            // Simulate waiting for approval (replace with real logic if needed)
-            await new Promise(resolve => setTimeout(resolve, 2 * 60 * 1000));
-            core.setFailed('No QA approval received in 2 minutes. Skipping QA deployment.');
+#   qa-approval:
+#     needs: deploy-dev
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 5
+#     continue-on-error: true
+#     steps:
+#       - name: Wait for QA Approval
+#         uses: actions/github-script@v7
+#         with:
+#           script: |
+#             core.notice('Waiting for QA approval...');
+#             // Simulate waiting for approval (replace with real logic if needed)
+#             await new Promise(resolve => setTimeout(resolve, 2 * 60 * 1000));
+#             core.setFailed('No QA approval received in 2 minutes. Skipping QA deployment.');
 
-  deploy-qa-1:
-    needs: qa-approval
-    if: needs.qa-approval.result == 'success'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to QA
-        run: echo "Deploying to QA..."
+#   deploy-qa-1:
+#     needs: qa-approval
+#     if: needs.qa-approval.result == 'success'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Deploy to QA
+#         run: echo "Deploying to QA..."
 
   # # --- Job 2: QA Approval & Deploy ---
   # wait-for-qa-approval:
