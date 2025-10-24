@@ -26,12 +26,12 @@ jobs:
       - name: Download Docker Image Tag Artifact
         uses: actions/download-artifact@v4
         with:
-          name: docker-image-tag  # Make sure this matches the artifact name from CI
+          name: docker-image-tag
 
       - name: Load Docker Image Tag
         id: load-image-tag
         run: |
-          source docker-image-tag.env
+          source image-tag.env
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
