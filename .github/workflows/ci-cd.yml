@@ -114,7 +114,7 @@ jobs:
   # Deploy to Dev (auto) ECS Task + Service
   # ------------------------
   ecs-deploy-dev:
-    # needs: Prisma-Image-scan
+    needs: Prisma-Image-scan
     name: Deploy to Dev
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-BlueGreen
     with:
