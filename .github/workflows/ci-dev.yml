@@ -107,6 +107,7 @@ jobs:
   ecs-deploy-dev:
     # needs: Prisma-Image-scan
     name: Deploy to Dev
+    needs: ci
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-Deployment
     with:
       environment: "dev"
