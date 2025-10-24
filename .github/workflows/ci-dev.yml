@@ -21,10 +21,10 @@ permissions:
   id-token: write
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "This workflow is runnable"
+  # check:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: echo "This workflow is runnable"
   # # # ------------------------
   # # # Repository Contribution Compliance Gate
   # # # ------------------------
