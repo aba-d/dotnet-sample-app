@@ -2,16 +2,16 @@ name: CI-Dev Pipeline
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - Feature-*
-      - main
-  pull_request:
-    types: [opened, edited, synchronize, reopened]
-    branches:
-      - main
-      - Integration
-      - develop
+  # push:
+  #   branches:
+  #     - Feature-*
+  #     - main
+  # pull_request:
+  #   types: [opened, edited, synchronize, reopened]
+  #   branches:
+  #     - main
+  #     - Integration
+  #     - develop
 
 permissions:
   security-events: write
