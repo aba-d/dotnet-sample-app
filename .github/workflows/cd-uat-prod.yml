@@ -2,7 +2,7 @@ name: CD to UAT/PROD
 
 on:
   workflow_run:
-    workflows: ["CI-CD Pipeline"]
+    workflows: ["CI-Dev Pipeline"]
     types:
       - completed
 
@@ -14,6 +14,12 @@ permissions:
   id-token: write
 
 jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Step
+        run: echo "🚀 CD triggered automatically after CI success"
   # ------------------------
   # Step 1️⃣ Download IMAGE_TAG artifact from CI workflow
   # ------------------------
