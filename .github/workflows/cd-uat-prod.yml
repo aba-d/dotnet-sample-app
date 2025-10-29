@@ -19,7 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Step
-        run: echo "🚀 CD triggered automatically after CI success"
+        run : |-
+          echo "🚀 CD triggered automatically after CI success"
+          echo "workflow_id=${{ github.event.workflow_run.id }}"
   # ------------------------
   # Step 1️⃣ Download IMAGE_TAG artifact from CI workflow
   # ------------------------
@@ -32,6 +34,7 @@ jobs:
       - name: Download Docker Image Tag Artifact
         uses: actions/download-artifact@v4
         with:
+          workflow_run_id: ${{ github.event.workflow_run.id }}
           name: docker-image-tag
 
       - name: Load Docker Image Tag
