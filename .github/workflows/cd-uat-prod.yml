@@ -25,6 +25,10 @@ jobs:
           echo "CI run conclusion: ${{ github.event.workflow_run.conclusion }}"
           echo "CI run branch: ${{ github.event.workflow_run.head_branch }}"
           echo "CI run SHA: ${{ github.event.workflow_run.head_sha }}"
+      - name: List Artifacts
+        run: |
+          gh run download ${{ github.event.workflow_run.id }} --repo aba-d/dotnet-sample-app --list
+
   # ------------------------
   # Step 1️⃣ Download IMAGE_TAG artifact from CI workflow
   # ------------------------
