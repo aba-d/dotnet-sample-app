@@ -25,9 +25,41 @@ jobs:
           echo "CI run conclusion: ${{ github.event.workflow_run.conclusion }}"
           echo "CI run branch: ${{ github.event.workflow_run.head_branch }}"
           echo "CI run SHA: ${{ github.event.workflow_run.head_sha }}"
-      - name: List Artifacts
+      - name: Get latest CI run ID
+        id: get-ci-run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh run view 18925213085 --repo aba-d/dotnet-sample-app --json artifacts --jq '.artifacts[].name'
+          # Get the latest successful run from the CI workflow
+          RUN_ID=$(gh run list \
+            --repo aba-d/dotnet-sample-app \
+            --workflow "ci-dev.yml" \
+            --branch main \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+
+      - name: List artifacts from latest CI run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Artifacts in CI run ${{ steps.get-ci-run.outputs.run_id }}:"
+          gh run view ${{ steps.get-ci-run.outputs.run_id }} \
+            --repo aba-d/dotnet-sample-app \
+            --json artifacts \
+            --jq '.artifacts[].name'
+
+      - name: Download docker-image-tag artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run download ${{ steps.get-ci-run.outputs.run_id }} \
+            --repo aba-d/dotnet-sample-app \
+            --name docker-image-tag \
+            --dir ./artifacts
 
   # ------------------------
   # Step 1️⃣ Download IMAGE_TAG artifact from CI workflow
