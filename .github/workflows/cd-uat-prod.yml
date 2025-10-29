@@ -21,7 +21,10 @@ jobs:
       - name: Deploy Step
         run : |-
           echo "🚀 CD triggered automatically after CI success"
-          echo "workflow_id=${{ github.event.workflow_run.id }}"
+          echo "Previous CI run ID: ${{ github.event.workflow_run.id }}"
+          echo "CI run conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "CI run branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "CI run SHA: ${{ github.event.workflow_run.head_sha }}"
   # ------------------------
   # Step 1️⃣ Download IMAGE_TAG artifact from CI workflow
   # ------------------------
@@ -31,10 +34,11 @@ jobs:
     outputs:
       IMAGE_TAG: ${{ steps.load-image-tag.outputs.IMAGE_TAG }}
     steps:
-      - name: Download Docker Image Tag Artifact
+      - name: Download artifact from CI
         uses: actions/download-artifact@v4
         with:
-          workflow_run_id: ${{ github.event.workflow_run.id }}
+          repository: ${{ github.repository }}       # dynamic repository
+          run-id: ${{ github.event.workflow_run.id }} # CI workflow run ID
           name: docker-image-tag
 
       - name: Load Docker Image Tag
