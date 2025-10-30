@@ -43,11 +43,11 @@ jobs:
             --name docker-image-tag \
             --dir ./artifacts
           ls -la ./artifacts
+          cat ./artifacts/image-tag.env
 
       - name: Load Docker Image Tag
         id: load-image-tag
         run: |
-          unzip -o ./artifacts/docker-image-tag.zip -d ./artifacts
           ls -la ./artifacts
           source ./artifacts/image-tag.env
           echo "Loaded IMAGE_TAG: $IMAGE_TAG"
