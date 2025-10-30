@@ -65,7 +65,7 @@ jobs:
     with:
       environment: "dev"
       app-language: "csharp"
-      extra-env: '[{"name":"ASPNETCORE_ENVIRONMENT","value":"Development"}]'
+      extra-env: '[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Development\"}]'
       image-tag: ${{ needs.download-image-tag.outputs.IMAGE_TAG }}
     secrets: inherit
 
