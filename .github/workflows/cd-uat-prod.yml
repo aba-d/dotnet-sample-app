@@ -5,6 +5,11 @@ on:
     workflows: ["CI-Dev Pipeline"]
     types:
       - completed
+    branches:
+      - main
+      - develop
+      - release/*
+      - hotfix/*
 
 permissions:
   security-events: write
