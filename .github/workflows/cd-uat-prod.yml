@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Step
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run : |-
           echo "🚀 CD triggered automatically after CI success"
           echo "Previous CI run ID: ${{ github.event.workflow_run.id }}"
@@ -26,20 +28,10 @@ jobs:
           echo "CI run branch: ${{ github.event.workflow_run.head_branch }}"
           echo "CI run SHA: ${{ github.event.workflow_run.head_sha }}"
 
-      - name: List artifacts from latest CI run
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Artifacts in CI run ${{ github.event.workflow_run.id }}:"
-          gh run view ${{ github.event.workflow_run.id }} \
-            --repo aba-d/dotnet-sample-app \
-            --json artifacts \
-            --jq '.artifacts[].name'
-
       - name: Download docker-image-tag artifact
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+        run: |-
           gh run download ${{ github.event.workflow_run.id }} \
             --repo aba-d/dotnet-sample-app \
             --name docker-image-tag \
