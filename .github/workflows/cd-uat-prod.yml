@@ -14,15 +14,17 @@ permissions:
   id-token: write
 
 jobs:
+
+  # ------------------------
+  # Step 1️⃣ Download IMAGE_TAG artifact from CI workflow
+  # ------------------------
   download-image-tag:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    outputs:
+    outputs:                           # <-- Job-level output
       IMAGE_TAG: ${{ steps.load-image-tag.outputs.IMAGE_TAG }}
     steps:
-      - name: Deploy Step
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check CI variables
         run : |-
           echo "🚀 CD triggered automatically after CI success"
           echo "Previous CI run ID: ${{ github.event.workflow_run.id }}"
@@ -33,22 +35,24 @@ jobs:
       - name: Download docker-image-tag artifact
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |-
-          echo "Downloading artifact from CI run ${{ github.event.workflow_run.id }}"
+        run: |
+          echo "Downloading docker-image-tag artifact...${{ github.event.workflow_run.id }}"
           mkdir -p ./artifacts
           gh run download ${{ github.event.workflow_run.id }} \
-            --repo aba-d/dotnet-sample-app \
+            --repo ${{ github.repository }} \
             --name docker-image-tag \
             --dir ./artifacts
-          ls -la
+          ls -la ./artifacts
 
       - name: Load Docker Image Tag
         id: load-image-tag
         run: |
+          unzip -o ./artifacts/docker-image-tag.zip -d ./artifacts
+          ls -la ./artifacts
           source ./artifacts/image-tag.env
+          echo "Loaded IMAGE_TAG: $IMAGE_TAG"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
-
 
   # ------------------------
   # Step 2️⃣ Deploy to QA using the IMAGE_TAG
@@ -79,5 +83,5 @@ jobs:
       idle-tg: ${{ needs.ecs-deploy-QA.outputs.IDLE_TG }}
       idle-service: ${{ needs.ecs-deploy-QA.outputs.IDLE_SERVICE }}
       is-first-deploy: ${{ fromJSON(needs.ecs-deploy-QA.outputs.IS_FIRST_DEPLOY) }}
-      live-service: ${{ needs.ecs-deploy-QA.outputs.LIVE_SERVICE}}
+      live-service: ${{ needs.ecs-deploy-QA.outputs.LIVE_SERVICE }}
     secrets: inherit
