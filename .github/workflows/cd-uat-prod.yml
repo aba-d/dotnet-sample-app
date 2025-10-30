@@ -14,9 +14,11 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
+  download-image-tag:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.load-image-tag.outputs.IMAGE_TAG }}
     steps:
       - name: Deploy Step
         env:
@@ -32,33 +34,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
+          echo "Downloading artifact from CI run ${{ github.event.workflow_run.id }}"
+          mkdir -p ./artifacts
           gh run download ${{ github.event.workflow_run.id }} \
             --repo aba-d/dotnet-sample-app \
             --name docker-image-tag \
             --dir ./artifacts
-
-  # ------------------------
-  # Step 1️⃣ Download IMAGE_TAG artifact from CI workflow
-  # ------------------------
-  download-image-tag:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
-    outputs:
-      IMAGE_TAG: ${{ steps.load-image-tag.outputs.IMAGE_TAG }}
-    steps:
-      - name: Download artifact from CI
-        uses: actions/download-artifact@v4
-        with:
-          repository: ${{ github.repository }}       # dynamic repository
-          run-id: ${{ github.event.workflow_run.id }} # CI workflow run ID
-          name: docker-image-tag
+          ls -la
 
       - name: Load Docker Image Tag
         id: load-image-tag
         run: |
-          source image-tag.env
+          source ./artifacts/image-tag.env
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
 
   # ------------------------
   # Step 2️⃣ Deploy to QA using the IMAGE_TAG
