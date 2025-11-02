@@ -3,7 +3,6 @@ environments:
     service:
       name: my-app-dev
       container:
-        image: "707733857215.dkr.ecr.us-east-2.amazonaws.com/nonprodimagerepository:dotnet-sample-app-eb79e52"
         port: 8080
         cpu: 256
         memory: 512
@@ -13,10 +12,8 @@ environments:
           - name: LOG_LEVEL
             value: DEBUG
       aws:
-        region: us-east-2
         cluster: my-ecs-dev-cluster
         serviceName: my-app-dev-service
-        taskFamily: my-app-dev-task
         desiredCount: 1
         executionRoleArn: arn:aws:iam::${{ vars.AWS_ACCOUNTID }}:role/ecsTaskExecutionRole
         ecrreponame: nonprodimagerepository
@@ -28,8 +25,8 @@ environments:
           securityGroups:
             - sg-063ac0f34f2c86baa
         targetGroups:
-          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
-          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
+          blue: arn:aws:elasticloadbalancing:${{ vars.AWS_REGION }}:${{ vars.AWS_ACCOUNTID }}:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
+          green: arn:aws:elasticloadbalancing:${{ vars.AWS_REGION }}:${{ vars.AWS_ACCOUNTID }}:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
 
   qa:
     service:
