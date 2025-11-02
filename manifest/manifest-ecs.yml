@@ -1,7 +1,7 @@
 environments:
   dev:
     service:
-      name: my-app-dev
+      name: dotnet-sample-app
       container:
         port: 8080
         cpu: 256
@@ -13,9 +13,8 @@ environments:
             value: DEBUG
       aws:
         cluster: my-ecs-dev-cluster
-        serviceName: my-app-dev-service
         desiredCount: 1
-        executionRoleArn: arn:aws:iam::${{ vars.AWS_ACCOUNTID }}:role/ecsTaskExecutionRole
+        executionRoleName: ecsTaskExecutionRole
         ecrreponame: nonprodimagerepository
         alb:
           arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d
