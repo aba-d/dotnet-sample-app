@@ -11,6 +11,8 @@ environments:
             value: dev
           - name: LOG_LEVEL
             value: DEBUG
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Development
       aws:
         cluster: dev-cluster
         desiredCount: 1
