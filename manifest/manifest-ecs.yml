@@ -1,0 +1,88 @@
+environments:
+  dev:
+    service:
+      name: my-app-dev
+      container:
+        image: ghcr.io/org/my-app:${{ github.sha }}
+        port: 8080
+        cpu: 256
+        memory: 512
+        environmentVariables:
+          - name: APP_ENV
+            value: dev
+          - name: LOG_LEVEL
+            value: DEBUG
+      aws:
+        region: us-east-2
+        cluster: my-ecs-dev-cluster
+        serviceName: my-app-dev-service
+        taskFamily: my-app-dev-task
+        desiredCount: 1
+        executionRoleArn: arn:aws:iam::${{ vars.AWS_ACCOUNTID }}:role/ecsTaskExecutionRole
+        ecrreponame: nonprodimagerepository
+        networkConfiguration:
+          assignPublicIp: ENABLED
+          subnets:
+            - subnet-05741c5e17cae42e3
+            - subnet-08a31fa8b5dec1cfa
+          securityGroups:
+            - sg-063ac0f34f2c86baa
+        targetGroups:
+          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
+          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
+
+  qa:
+    service:
+      name: my-app-qa
+      container:
+        image: ghcr.io/org/my-app:${{ github.sha }}
+        port: 8080
+        cpu: 512
+        memory: 1024
+        environmentVariables:
+          - name: APP_ENV
+            value: qa
+          - name: LOG_LEVEL
+            value: INFO
+      aws:
+        region: us-east-2
+        cluster: my-ecs-qa-cluster
+        serviceName: my-app-qa-service
+        taskFamily: my-app-qa-task
+        desiredCount: 2
+        executionRoleArn: arn:aws:iam::${{ vars.AWS_ACCOUNTID }}:role/ecsTaskExecutionRole
+        networkConfiguration:
+          assignPublicIp: ENABLED
+          subnets:
+            - subnet-qa-a
+            - subnet-qa-b
+          securityGroups:
+            - sg-qa
+
+  prod:
+    service:
+      name: my-app-prod
+      container:
+        image: ghcr.io/org/my-app:${{ github.sha }}
+        port: 8080
+        cpu: 1024
+        memory: 2048
+        environmentVariables:
+          - name: APP_ENV
+            value: prod
+          - name: LOG_LEVEL
+            value: WARN
+      aws:
+        region: us-east-2
+        cluster: my-ecs-prod-cluster
+        serviceName: my-app-prod-service
+        taskFamily: my-app-prod-task
+        desiredCount: 3
+        executionRoleArn: arn:aws:iam::${{ vars.AWS_ACCOUNTID }}:role/ecsTaskExecutionRole
+        networkConfiguration:
+          assignPublicIp: ENABLED
+          subnets:
+            - subnet-prod-a
+            - subnet-prod-b
+          securityGroups:
+            - sg-prod
