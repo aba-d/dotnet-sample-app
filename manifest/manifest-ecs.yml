@@ -31,56 +31,60 @@ environments:
 
   qa:
     service:
-      name: my-app-qa
+      name: dotnet-sample-app
       container:
-        image: ghcr.io/org/my-app:${{ github.sha }}
         port: 8080
-        cpu: 512
-        memory: 1024
+        cpu: 256
+        memory: 512
         environmentVariables:
-          - name: APP_ENV
-            value: qa
-          - name: LOG_LEVEL
-            value: INFO
+          - name: ASPNETCORE_ENVIRONMENT
+            value: QA
       aws:
-        region: us-east-2
-        cluster: my-ecs-qa-cluster
-        serviceName: my-app-qa-service
-        taskFamily: my-app-qa-task
-        desiredCount: 2
-        executionRoleArn: arn:aws:iam::${{ vars.AWS_ACCOUNTID }}:role/ecsTaskExecutionRole
+        cluster: dev-cluster
+        desiredCount: 1
+        executionRoleName: ecsTaskExecutionRole
+        ecrreponame: nonprodimagerepository
+        alb:
+          arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d
+          mainlisteners:
+            arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f
         networkConfiguration:
           assignPublicIp: ENABLED
           subnets:
-            - subnet-qa-a
-            - subnet-qa-b
+            - subnet-05741c5e17cae42e3
+            - subnet-08a31fa8b5dec1cfa
           securityGroups:
-            - sg-qa
+            - sg-063ac0f34f2c86baa
+        targetGroups:
+          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
+          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
 
   prod:
     service:
-      name: my-app-prod
+      name: dotnet-sample-app
       container:
-        image: ghcr.io/org/my-app:${{ github.sha }}
         port: 8080
-        cpu: 1024
-        memory: 2048
+        cpu: 256
+        memory: 512
         environmentVariables:
-          - name: APP_ENV
-            value: prod
-          - name: LOG_LEVEL
-            value: WARN
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Production
       aws:
-        region: us-east-2
-        cluster: my-ecs-prod-cluster
-        serviceName: my-app-prod-service
-        taskFamily: my-app-prod-task
-        desiredCount: 3
-        executionRoleArn: arn:aws:iam::${{ vars.AWS_ACCOUNTID }}:role/ecsTaskExecutionRole
+        cluster: dev-cluster
+        desiredCount: 1
+        executionRoleName: ecsTaskExecutionRole
+        ecrreponame: nonprodimagerepository
+        alb:
+          arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d
+          mainlisteners:
+            arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f
         networkConfiguration:
           assignPublicIp: ENABLED
           subnets:
-            - subnet-prod-a
-            - subnet-prod-b
+            - subnet-05741c5e17cae42e3
+            - subnet-08a31fa8b5dec1cfa
           securityGroups:
-            - sg-prod
+            - sg-063ac0f34f2c86baa
+        targetGroups:
+          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
+          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
