@@ -3,7 +3,7 @@ environments:
     service:
       name: my-app-dev
       container:
-        image: ghcr.io/org/my-app:${{ github.sha }}
+        image: "707733857215.dkr.ecr.us-east-2.amazonaws.com/nonprodimagerepository:dotnet-sample-app-eb79e52"
         port: 8080
         cpu: 256
         memory: 512
