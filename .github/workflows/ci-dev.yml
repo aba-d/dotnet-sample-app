@@ -132,3 +132,4 @@ jobs:
       is-first-deploy: ${{ fromJSON(needs.ecs-deploy-dev.outputs.IS_FIRST_DEPLOY) }}
       live-service: ${{ needs.ecs-deploy-dev.outputs.LIVE_SERVICE}}
     secrets: inherit
+    
