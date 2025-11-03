@@ -29,12 +29,12 @@ jobs:
   # # # ------------------------
   # # # Repository Contribution Compliance Gate
   # # # ------------------------
-  # Repository-Contribution-Compliance:
-  #   name: Repo Contribution Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
-  #   with:
-  #     base_branch: main
-  #     jira_prefix: "SCRUM|PROJ|scrum|proj"
+  Repository-Contribution-Compliance:
+    name: Repo Contribution Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
+    with:
+      base_branch: main
+      jira_prefix: "SCRUM|PROJ|scrum|proj"
   
   # # # # ------------------------
   # # # # Code Scan (Codeql)
