@@ -1,0 +1,90 @@
+environments:
+  dev:
+    service:
+      name: dotnet-sample-app
+      container:
+        port: 8080
+        cpu: 256
+        memory: 512
+        environmentVariables:
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Development
+      aws:
+        cluster: dev-cluster
+        desiredCount: 1
+        executionRoleName: ecsTaskExecutionRole
+        ecrreponame: nonprodimagerepository
+        alb:
+          arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d
+          mainlisteners:
+            arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f
+        networkConfiguration:
+          assignPublicIp: ENABLED
+          subnets:
+            - subnet-05741c5e17cae42e3
+            - subnet-08a31fa8b5dec1cfa
+          securityGroups:
+            - sg-063ac0f34f2c86baa
+        targetGroups:
+          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
+          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
+
+  qa:
+    service:
+      name: dotnet-sample-app
+      container:
+        port: 8080
+        cpu: 256
+        memory: 512
+        environmentVariables:
+          - name: ASPNETCORE_ENVIRONMENT
+            value: QA
+      aws:
+        cluster: dev-cluster
+        desiredCount: 1
+        executionRoleName: ecsTaskExecutionRole
+        ecrreponame: nonprodimagerepository
+        alb:
+          arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d
+          mainlisteners:
+            arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f
+        networkConfiguration:
+          assignPublicIp: ENABLED
+          subnets:
+            - subnet-05741c5e17cae42e3
+            - subnet-08a31fa8b5dec1cfa
+          securityGroups:
+            - sg-063ac0f34f2c86baa
+        targetGroups:
+          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
+          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
+
+  prod:
+    service:
+      name: dotnet-sample-app
+      container:
+        port: 8080
+        cpu: 256
+        memory: 512
+        environmentVariables:
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Production
+      aws:
+        cluster: dev-cluster
+        desiredCount: 1
+        executionRoleName: ecsTaskExecutionRole
+        ecrreponame: nonprodimagerepository
+        alb:
+          arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d
+          mainlisteners:
+            arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f
+        networkConfiguration:
+          assignPublicIp: ENABLED
+          subnets:
+            - subnet-05741c5e17cae42e3
+            - subnet-08a31fa8b5dec1cfa
+          securityGroups:
+            - sg-063ac0f34f2c86baa
+        targetGroups:
+          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
+          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c

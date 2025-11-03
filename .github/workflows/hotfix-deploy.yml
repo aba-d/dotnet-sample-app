@@ -1,0 +1,35 @@
+name: 🔥 Hotfix Deployment (ECS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+      image_tag:
+        description: 'New image tag to deploy (e.g., v1.0.25)'
+        required: true
+      change_ticket:
+        description: 'Change Request / Incident ID'
+        required: true
+
+permissions:
+  contents: read
+  actions: write
+  deployments: write
+
+jobs:
+  deploy-hotfix:
+    name: Deploy Hotfix to ECS (${{ github.event.inputs.environment }})
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      deploy_type: 'hotfix'
+      image_tag: ${{ github.event.inputs.image_tag }}
+      reason: ${{ github.event.inputs.reason }}
+      change_ticket: ${{ github.event.inputs.change_ticket }}
+    secrets: inherit
