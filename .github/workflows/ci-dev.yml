@@ -10,8 +10,9 @@ on:
     types: [opened, edited, synchronize, reopened]
     branches:
       - main
-      - Integration
+      - integration
       - develop
+      - Feature-Test
 
 permissions:
   security-events: write
