@@ -5,30 +5,58 @@ on:
     workflows: ["CI-Dev Pipeline"]
     types:
       - completed
+    branches:
+      - main
+      - develop
+      - release/*
+      - hotfix/*
+      - Feature-Test
+
+permissions:
+  security-events: write
+  actions: read
+  contents: read
+  packages: write
+  id-token: write
 
 jobs:
+
   # ------------------------
   # Step 1️⃣ Download IMAGE_TAG artifact from CI workflow
   # ------------------------
   download-image-tag:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    outputs:
+    outputs:                           # <-- Job-level output
       IMAGE_TAG: ${{ steps.load-image-tag.outputs.IMAGE_TAG }}
     steps:
-      - name: Download Docker Image Tag Artifact
-        # uses: actions/download-artifact@v4
-        # with:
-        #   name: docker-image-tag
-        uses: actions/download-artifact@v4
-        with:
-          workflow_run_id: ${{ github.event.workflow_run.id }}
-          name: docker-image-tag
+      - name: Check CI variables
+        run : |-
+          echo "🚀 CD triggered automatically after CI success"
+          echo "Previous CI run ID: ${{ github.event.workflow_run.id }}"
+          echo "CI run conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "CI run branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "CI run SHA: ${{ github.event.workflow_run.head_sha }}"
+
+      - name: Download docker-image-tag artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Downloading docker-image-tag artifact...${{ github.event.workflow_run.id }}"
+          mkdir -p ./artifacts
+          gh run download ${{ github.event.workflow_run.id }} \
+            --repo ${{ github.repository }} \
+            --name docker-image-tag \
+            --dir ./artifacts
+          ls -la ./artifacts
+          cat ./artifacts/image-tag.env
 
       - name: Load Docker Image Tag
         id: load-image-tag
         run: |
-          source image-tag.env
+          ls -la ./artifacts
+          source ./artifacts/image-tag.env
+          echo "Loaded IMAGE_TAG: $IMAGE_TAG"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
@@ -39,7 +67,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     needs: download-image-tag
     name: Deploy to QA
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatemanifest.yml@Feature-Deployment
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-Deployment
     with:
       environment: "dev"
       app-language: "csharp"
@@ -60,5 +88,5 @@ jobs:
       idle-tg: ${{ needs.ecs-deploy-QA.outputs.IDLE_TG }}
       idle-service: ${{ needs.ecs-deploy-QA.outputs.IDLE_SERVICE }}
       is-first-deploy: ${{ fromJSON(needs.ecs-deploy-QA.outputs.IS_FIRST_DEPLOY) }}
-      live-service: ${{ needs.ecs-deploy-QA.outputs.LIVE_SERVICE}}
+      live-service: ${{ needs.ecs-deploy-QA.outputs.LIVE_SERVICE }}
     secrets: inherit
