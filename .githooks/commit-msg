@@ -1,15 +1,233 @@
 #!/bin/sh
-
-# Commit message file
-commit_msg_file=$1
-commit_msg=$(cat "$commit_msg_file")
-
-# Regex: Must have Jira key like PROJ-123 followed by description
-regex='^[A-Z][A-Z0-9]+-[0-9]+[[:space:]]+.+'
-
-if ! echo "$commit_msg" | grep -Eq "$regex"; then
-  echo "❌ Commit message rejected."
-  echo "➡️ Format must be: JIRA-123 <meaningful description>"
-  echo "Example: PROJ-456 Fix login issue"
-  exit 1
+# Commit-msg hook: Enforces organizational commit message standards including Jira tickets
+ 
+# =============================================================================
+# SCRIPT INITIALIZATION AND SAFEGUARDS
+# =============================================================================
+ 
+# Exit immediately if a command exits with a non-zero status
+set -e
+ 
+# Check if commit message file exists
+if [ ! -f "$1" ]; then
+    echo "Error: Commit message file not found: $1"
+    exit 1
 fi
+ 
+# Check if commit message is empty
+if [ ! -s "$1" ]; then
+    echo "Error: Commit message is empty"
+    exit 1
+fi
+ 
+# =============================================================================
+# TERMINAL COLORS CONFIGURATION
+# =============================================================================
+ 
+# Color codes for terminal output
+if [ -t 1 ]; then
+    # Colors (only if terminal supports it)
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[0;33m'
+    BLUE='\033[0;34m'
+    PURPLE='\033[0;35m'
+    CYAN='\033[0;36m'
+    WHITE='\033[0;37m'
+    BOLD='\033[1m'
+    DIM='\033[2m'
+    UNDERLINE='\033[4m'
+    RESET='\033[0m'
+    
+    # Background colors
+    BG_RED='\033[41m'
+    BG_GREEN='\033[42m'
+    BG_YELLOW='\033[43m'
+    BG_BLUE='\033[44m'
+    BG_PURPLE='\033[45m'
+    BG_CYAN='\033[46m'
+else
+    # No colors if not in terminal
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    PURPLE=''
+    CYAN=''
+    WHITE=''
+    BOLD=''
+    DIM=''
+    UNDERLINE=''
+    RESET=''
+    BG_RED=''
+    BG_GREEN=''
+    BG_YELLOW=''
+    BG_BLUE=''
+    BG_PURPLE=''
+    BG_CYAN=''
+fi
+ 
+# =============================================================================
+# COLORIZED LOGGING FUNCTIONS
+# =============================================================================
+ 
+log_validate() {
+    printf "${CYAN}${BOLD}🔍 [VALIDATE]${RESET} ${WHITE}$1${RESET}\n"
+}
+ 
+log_error() {
+    printf "${RED}${BOLD}❌ [ERROR]${RESET} ${RED}$1${RESET}\n"
+}
+ 
+log_success() {
+    printf "${GREEN}${BOLD}✅ [SUCCESS]${RESET} ${GREEN}$1${RESET}\n"
+}
+ 
+log_branch() {
+    printf "${PURPLE}${BOLD}[BRANCH]${RESET} Branch: ${PURPLE}${BOLD}$1${RESET}\n"
+}
+ 
+log_header() {
+    printf "${BOLD}${BG_BLUE} $1 ${RESET}\n"
+}
+ 
+log_example() {
+    printf "    ${GREEN}$1${RESET}\n"
+}
+ 
+log_format() {
+    printf "    ${CYAN}$1${RESET}\n"
+}
+ 
+log_user_message() {
+    printf "${YELLOW}${BOLD}Your commit message:${RESET}\n"
+    printf "${YELLOW}$(cat $1)${RESET}\n"
+}
+ 
+# =============================================================================
+# VALIDATION CONFIGURATION
+# =============================================================================
+ 
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+commit_regex='^(feat|fix|docs|style|refactor|test|chore|workflow)(\([^)]+\))?: .{1,200}$'
+jira_regex='[A-Za-z][A-Za-z0-9]+-[0-9]+'
+ 
+# =============================================================================
+# MAIN VALIDATION LOGIC
+# =============================================================================
+ 
+log_validate "Validating commit message (organizational standards)..."
+# Uncomment to show branch info
+# log_branch "$CURRENT_BRANCH"
+ 
+# =============================================================================
+# COMMIT MESSAGE FORMAT VALIDATION
+# =============================================================================
+ 
+if ! grep -qE "$commit_regex" "$1"; then
+    log_error "Invalid commit message format!"
+    printf "\n"
+    
+    log_header " ORGANIZATIONAL COMMIT STANDARDS "
+    printf "\n"
+    
+    printf "${BOLD}${UNDERLINE}Format:${RESET} ${CYAN}<type>(<scope>): <description>${RESET}\n"
+    printf "\n"
+    
+    printf "${BOLD}${UNDERLINE}Available Types:${RESET}\n"
+    printf "  ${GREEN}feat${RESET}     - New features\n"
+    printf "  ${RED}fix${RESET}      - Bug fixes\n"
+    printf "  ${BLUE}docs${RESET}     - Documentation changes\n"
+    printf "  ${PURPLE}style${RESET}    - Code style changes (formatting, etc.)\n"
+    printf "  ${CYAN}refactor${RESET} - Code refactoring\n"
+    printf "  ${YELLOW}test${RESET}     - Adding or updating tests\n"
+    printf "  ${WHITE}chore${RESET}    - Maintenance tasks\n"
+    printf "  ${DIM}workflow${RESET} - CI/CD and workflow changes\n"
+    printf "\n"
+    
+    printf "${BOLD}${UNDERLINE}Requirements:${RESET}\n"
+    printf "    ${CYAN}• Description: 1-200 characters${RESET}\n"
+    printf "    ${CYAN}• Scope: optional but recommended${RESET}\n"
+    printf "    ${CYAN}• Must include Jira ticket number${RESET}\n"
+    printf "\n"
+    
+    printf "${BOLD}${UNDERLINE}Examples:${RESET}\n"
+    printf "    ${GREEN}feat(auth): JIRA-123 add OAuth2 authentication${RESET}\n"
+    printf "    ${GREEN}fix(api): DEV-456 resolve user registration bug${RESET}\n"
+    printf "    ${GREEN}docs: PROJ-789 update setup instructions${RESET}\n"
+    printf "    ${GREEN}refactor(core): TASK-101 optimize database queries${RESET}\n"
+    printf "\n"
+    
+    printf "${YELLOW}${BOLD}Your commit message:${RESET}\n"
+    printf "${YELLOW}$(cat $1)${RESET}\n"
+    printf "\n"
+    
+    exit 1
+fi
+ 
+# =============================================================================
+# JIRA TICKET VALIDATION
+# =============================================================================
+ 
+if ! grep -qE "$jira_regex" "$1"; then
+    log_error "Missing Jira ticket number in commit message!"
+    printf "\n"
+    
+    log_header " ORGANIZATIONAL JIRA REQUIREMENT "
+    printf "\n"
+    
+    printf "${BOLD}${UNDERLINE}Requirement:${RESET}\n"
+    printf "  ${WHITE}All commits must include a Jira ticket number${RESET}\n"
+    printf "\n"
+    
+    printf "${BOLD}${UNDERLINE}Format:${RESET}\n"
+    printf "    ${CYAN}PROJ-123 (project key + hyphen + number)${RESET}\n"
+    printf "    ${CYAN}Mixed case allowed: DevOps-123, MyProj-456${RESET}\n"
+    printf "\n"
+    
+    printf "${BOLD}${UNDERLINE}Valid Patterns:${RESET}\n"
+    printf "    ${CYAN}• JIRA-123   (standard Jira project)${RESET}\n"
+    printf "    ${CYAN}• DEV-456    (development tasks)${RESET}\n"
+    printf "    ${CYAN}• PROJ-789   (project-specific)${RESET}\n"
+    printf "    ${CYAN}• DevOps-101 (mixed case allowed)${RESET}\n"
+    printf "    ${CYAN}• BUG-202    (bug tracking)${RESET}\n"
+    printf "\n"
+    
+    printf "${BOLD}${UNDERLINE}Examples:${RESET}\n"
+    printf "    ${GREEN}feat(auth): JIRA-123 add OAuth2 authentication${RESET}\n"
+    printf "    ${GREEN}fix(api): DEV-456 resolve user registration bug${RESET}\n"
+    printf "    ${GREEN}docs: PROJ-789 update setup instructions${RESET}\n"
+    printf "    ${GREEN}test(unit): TASK-101 add user service tests${RESET}\n"
+    printf "\n"
+    
+    printf "${YELLOW}${BOLD}Your commit message:${RESET}\n"
+    printf "${YELLOW}$(cat $1)${RESET}\n"
+    printf "\n"
+    
+    exit 1
+fi
+ 
+# =============================================================================
+# SUCCESS VALIDATION
+# =============================================================================
+ 
+printf "\n"
+printf "${BOLD}${BG_GREEN} ✅ VALIDATION SUCCESSFUL ${RESET}\n"
+printf "\n"
+ 
+log_success "Commit message format validated"
+log_success "Jira ticket number validated"
+ 
+# Extract and display the commit details for confirmation
+COMMIT_MESSAGE=$(cat "$1")
+COMMIT_TYPE=$(echo "$COMMIT_MESSAGE" | sed -n 's/^\([a-z]*\).*/\1/p')
+JIRA_TICKET=$(echo "$COMMIT_MESSAGE" | grep -oE '[A-Za-z][A-Za-z0-9]+-[0-9]+' | head -1)
+ 
+printf "\n"
+printf "${BOLD}${UNDERLINE}Commit Details:${RESET}\n"
+printf "  ${CYAN}Type:${RESET} ${BOLD}$COMMIT_TYPE${RESET}\n"
+printf "  ${PURPLE}Jira Ticket:${RESET} ${BOLD}$JIRA_TICKET${RESET}\n"
+printf "  ${GREEN}Message:${RESET} ${WHITE}$COMMIT_MESSAGE${RESET}\n"
+printf "\n"
+ 
+exit 0
