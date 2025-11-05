@@ -18,11 +18,16 @@ dotnet tool run dotnet-sonarscanner begin \
   /o:"$ORG_KEY" \
   /k:"$PROJECT_KEY" \
   /d:sonar.host.url="$SONAR_HOST" \
-  /d:sonar.token="$SONAR_TOKEN"
+  /d:sonar.token="$SONAR_TOKEN" \
+  /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
+  /d:sonar.cs.cobertura.reportsPaths="**/coverage.cobertura.xml"
 
 # Build and test
-dotnet build
-dotnet test --collect:"XPlat Code Coverage"
+dotnet build --no-incremental
+dotnet test "$TEST_PROJECT_PATH" \
+  --collect:"XPlat Code Coverage" \
+  --logger:"trx;LogFileName=test-results.trx" \
+  --results-directory "./coverage"
 
 # End Sonar analysis
 dotnet tool run dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
@@ -35,14 +40,15 @@ dotnet tool run reportgenerator \
 echo "✅ Sonar analysis complete!"
 
 # 5️⃣ Show code coverage summary locally
-COVERAGE_FILE=$(find ./coverage -type f -name "coverage.opencover.xml" | head -n 1)
+COVERAGE_FILE=$(find . -type f -name "coverage.cobertura.xml" | head -n 1)
 if [ -f "$COVERAGE_FILE" ]; then
   echo "🔍 .NET Code Coverage Summary:"
-  dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.1.22
-  reportgenerator -reports:$COVERAGE_FILE -targetdir:coverage-summary -reporttypes:TextSummary
+  dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.1.22 --verbosity quiet
+  reportgenerator -reports:"$COVERAGE_FILE" -targetdir:coverage-summary -reporttypes:TextSummary
   cat coverage-summary/Summary.txt
 else
-  echo "⚠️ No coverage report found."
+  echo "⚠️ No coverage report found. Looking in: $(pwd)"
+  find . -type f -name "coverage*.xml" -ls
 fi
 
 # 6️⃣ Fetch SonarCloud Quality Gate summary
