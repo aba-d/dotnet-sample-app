@@ -2,17 +2,17 @@ name: CI-CD Pipeline
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - Feature-*
-      - main
-  pull_request:
-    types: [opened, edited, synchronize, reopened]
-    branches:
-      - main
-      - integration
-      - develop
-      - Feature-Test
+  # push:
+  #   branches:
+  #     - Feature-*
+  #     - main
+  # pull_request:
+  #   types: [opened, edited, synchronize, reopened]
+  #   branches:
+  #     - main
+  #     - integration
+  #     - develop
+  #     - Feature-Test
 
 permissions:
   security-events: write
