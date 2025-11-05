@@ -75,9 +75,9 @@ environments:
         executionRoleName: ecsTaskExecutionRole
         ecrreponame: nonprodimagerepository
         alb:
-          arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d
+          arn: arn:aws:elasticloadbalancing:us-east-2:707733857216:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d
           mainlisteners:
-            arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f
+            arn: arn:aws:elasticloadbalancing:us-east-2:707733857216:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f
         networkConfiguration:
           assignPublicIp: ENABLED
           subnets:
@@ -86,5 +86,5 @@ environments:
           securityGroups:
             - sg-063ac0f34f2c86baa
         targetGroups:
-          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
-          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
+          blue: arn:aws:elasticloadbalancing:us-east-2:707733857216:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
+          green: arn:aws:elasticloadbalancing:us-east-2:707733857216:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
