@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - Feature-*
+      - feature-*
       - main
   pull_request:
     types: [opened, edited, synchronize, reopened]
@@ -22,70 +23,66 @@ permissions:
   id-token: write
 
 jobs:
-  # check:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - run: echo "This workflow is runnable"
   # # # ------------------------
   # # # Repository Contribution Compliance Gate
   # # # ------------------------
-  # Repository-Contribution-Compliance:
-  #   name: Repo Contribution Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
-  #   with:
-  #     base_branch: main
-  #     jira_prefix: "SCRUM|PROJ|scrum|proj"
+  Repository-Contribution-Compliance:
+    name: Repo Contribution Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
+    with:
+      base_branch: main
+      jira_prefix: "SCRUM|PROJ|scrum|proj"
   
   # # # # ------------------------
   # # # # Code Scan (Codeql)
   # # # # ------------------------
-  # Codeql-scan:
-  #   name: GHAS Scan & Quality Gate
-  #   needs: Repository-Contribution-Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
-  #   with:
-  #     language: 'csharp'
-  #     projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
-  #     buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
-  #     run-codeql-gate-check: "no"
-  #   secrets: inherit
+  Codeql-scan:
+    name: GHAS Scan & Quality Gate
+    needs: Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
+    with:
+      language: 'csharp'
+      projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
+      buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
+      run-codeql-gate-check: "no"
+    secrets: inherit
   
   # # # # ------------------------
   # # # # Veracode
   # # # # ------------------------
-  # Veracode-scan:
-  #   name: Veracode SAST & Quality Gate
-  #   needs: Repository-Contribution-Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
-  #   with:
-  #     run-veracode-gate-check: "yes"
-  #   secrets: inherit
+  Veracode-scan:
+    name: Veracode SAST & Quality Gate
+    needs: Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
+    with:
+      run-veracode-gate-check: "yes"
+    secrets: inherit
 
   # # # # ------------------------
   # # # # Sonarqube scan
   # # # # ------------------------
-  # Sonarqube-scan:
-  #   name: SonarQube Coverage & Quality Gate
-  #   needs:  Repository-Contribution-Compliance
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template-new.yml@Feature-Deployment
-  #   with:
-  #     projectKey: 'org-testfordemo_dotnet-sample-app'
-  #     organizationKey: org-testfordemo
-  #     projectSlnPath: "dotnet-sample-app.sln"
-  #     testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
-  #     # language: 'dotnet'
-  #     # language-version: '8.0'
-  #     run-sonarqube-gate-check: 'no'
-  #   secrets:
-  #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  Sonarqube-scan:
+    name: SonarQube Coverage & Quality Gate
+    needs:  Repository-Contribution-Compliance
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template-new.yml@Feature-Deployment
+    with:
+      projectKey: 'org-testfordemo_dotnet-sample-app'
+      organizationKey: org-testfordemo
+      projectSlnPath: "dotnet-sample-app.sln"
+      testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
+      # language: 'dotnet'
+      # language-version: '8.0'
+      run-sonarqube-gate-check: 'no'
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   # # # ------------------------
   # # # CI Stage (Build Image and Push to ECR)
   # # # ------------------------
   ci:
     name: Build, Scan and Push Image to ECR
-    # needs: [Sonarqube-scan, Veracode-scan, Codeql-scan]
+    needs: [Sonarqube-scan, Veracode-scan, Codeql-scan]
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/docker-build-push.yml@Feature-Deployment
     with:
       app-language: csharp
@@ -96,28 +93,26 @@ jobs:
     secrets: inherit
 
   # # # # ------------------------
-  # # # # Veracode
+  # # # # Prisma-Image-scan
   # # # # ------------------------
-  # Prisma-Image-scan:
-  #   name: Prisma Image Scan & Quality Gate
-  #   needs: ci
-  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/prisma-scan-template.yml@Feature-Deployment
-  #   with:
-  #     run-prisma-gate-check: "yes"
-  #   secrets: inherit
+  Prisma-Image-scan:
+    name: Prisma Image Scan & Quality Gate
+    needs: ci
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/prisma-scan-template.yml@Feature-Deployment
+    with:
+      run-prisma-gate-check: "yes"
+    secrets: inherit
 
   # ------------------------
   # Deploy to Dev (auto) ECS Task + Service
   # ------------------------
   ecs-deploy-dev:
-    # needs: Prisma-Image-scan
+    needs: Prisma-Image-scan
     name: Deploy to Dev
-    needs: ci
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatemanifest.yml@Feature-Deployment
     with:
       environment: "dev"
       app-language: "csharp"
-      # image-tag: "Test-Image-Tag"
       image-tag: ${{ needs.ci.outputs.IMAGE_TAG }}
     secrets: inherit
 
