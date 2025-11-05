@@ -5,7 +5,6 @@
 Examples:
 - `JIRA-123 feat(auth): implement OAuth login`
 - `DEV-456 fix(api): resolve user registration bug`
-- `PROJ-789 docs(readme): update deployment steps`
 
 ---
 
