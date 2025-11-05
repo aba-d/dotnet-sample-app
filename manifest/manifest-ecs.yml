@@ -40,7 +40,7 @@ environments:
           - name: ASPNETCORE_ENVIRONMENT
             value: QA
       aws:
-        cluster: dev-cluster
+        cluster: qa-cluster
         desiredCount: 1
         executionRoleName: ecsTaskExecutionRole
         ecrreponame: nonprodimagerepository
@@ -56,8 +56,8 @@ environments:
           securityGroups:
             - sg-063ac0f34f2c86baa
         targetGroups:
-          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
-          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
+          blue: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/qa-dotnet-sample-blue-tg/9ff85ee9e04f6c6c
+          green: arn:aws:elasticloadbalancing:us-east-2:707733857215:targetgroup/qa-dotnet-sample-green-tg/bd6af51950ac5d34
 
   prod:
     service:

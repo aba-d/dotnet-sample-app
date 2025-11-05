@@ -69,7 +69,7 @@ jobs:
     name: Deploy to QA
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-Deployment
     with:
-      environment: "dev"
+      environment: "qa"
       app-language: "csharp"
       image-tag: ${{ needs.download-image-tag.outputs.IMAGE_TAG }}
     secrets: inherit
@@ -83,7 +83,7 @@ jobs:
     name: Switch Traffic to Live
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/manual-promotion.yml@Feature-Deployment
     with:
-      environment: "dev"
+      environment: "qa"
       temp-listener-arn: ${{ needs.ecs-deploy-QA.outputs.TEMP_LISTENER_ARN }}
       idle-tg: ${{ needs.ecs-deploy-QA.outputs.IDLE_TG }}
       idle-service: ${{ needs.ecs-deploy-QA.outputs.IDLE_SERVICE }}
