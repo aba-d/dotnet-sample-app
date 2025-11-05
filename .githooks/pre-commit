@@ -1,12 +1,6 @@
 #!/bin/sh
 # Combined Pre-commit Hook with Test Mode and Multi-Build Tool Support
 # Supports both testing and production enforcement
-# Usage: 
-#   Production: normal git commit
-#   Test mode: TEST_MODE=true git commit
-#   Dry run: DRY_RUN=true git commit
-#   Debug: DEBUG_MODE=true git commit
- 
 # =============================================================================
 # TERMINAL COLORS CONFIGURATION
 # =============================================================================
@@ -55,31 +49,15 @@ else
 fi
  
 # =============================================================================
-# CONFIGURATION AND MODE DETECTION
+# CONFIGURATION
 # =============================================================================
- 
-# Detect execution mode
-TEST_MODE=${TEST_MODE:-false}
-DRY_RUN=${DRY_RUN:-false}
-DEBUG_MODE=${DEBUG_MODE:-false}
- 
-# Mode-specific configuration with colors
-if [ "$TEST_MODE" = "true" ]; then
-    printf "${CYAN}${BOLD}🧪 [TEST MODE]${RESET} ${CYAN}Pre-commit validation (non-blocking)${RESET}\n"
-    FAIL_ON_ERROR=false
-    VERBOSE=true
-elif [ "$DRY_RUN" = "true" ]; then
-    printf "${PURPLE}${BOLD}🔍 [DRY RUN]${RESET} ${PURPLE}Pre-commit validation (simulation only)${RESET}\n"
-    FAIL_ON_ERROR=false
-    VERBOSE=true
-else
-    printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Running centralized DevOps pre-commit checks...${RESET}\n"
-    FAIL_ON_ERROR=true
-    VERBOSE=${DEBUG_MODE}
-fi
- 
-printf "${DIM}[MODE]${RESET} Test: ${BOLD}$TEST_MODE${RESET} | Dry Run: ${BOLD}$DRY_RUN${RESET} | Debug: ${BOLD}$DEBUG_MODE${RESET}\n"
- 
+
+# Set production configuration
+FAIL_ON_ERROR=true
+VERBOSE=false
+
+printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Running centralized DevOps pre-commit checks...${RESET}\n"
+
 # =============================================================================
 # ENHANCED UTILITY FUNCTIONS WITH COLORS
 # =============================================================================
@@ -88,11 +66,11 @@ printf "${DIM}[MODE]${RESET} Test: ${BOLD}$TEST_MODE${RESET} | Dry Run: ${BOLD}$
 log_info() {
     printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}$1${RESET}\n"
 }
- 
+
 log_warning() {
     printf "${YELLOW}${BOLD}⚠️  [WARNING]${RESET} ${YELLOW}$1${RESET}\n"
 }
- 
+
 log_error() {
     local message="$1"
     printf "${RED}${BOLD}❌ [ERROR]${RESET} ${RED}$message${RESET}\n"
@@ -104,30 +82,25 @@ log_error() {
         return 1
     fi
 }
- 
+
 log_success() {
     printf "${GREEN}${BOLD}✅ [SUCCESS]${RESET} ${GREEN}$1${RESET}\n"
 }
- 
+
 log_debug() {
     if [ "$VERBOSE" = "true" ]; then
         printf "${DIM}[DEBUG]${RESET} ${DIM}$1${RESET}\n"
     fi
 }
- 
-# Special colored output functions
+
+log_security() {
+    printf "${YELLOW}${BOLD}🔒 [SECURITY]${RESET} ${YELLOW}$1${RESET}\n"
+}
+
 log_build_tool() {
     printf "${CYAN}${BOLD}🔧 Build Tool:${RESET} ${CYAN}$1${RESET}\n"
 }
- 
-log_branch() {
-    printf "${PURPLE}${BOLD}[BRANCH]${RESET} Current branch: ${PURPLE}${BOLD}$1${RESET}\n"
-}
- 
-log_project() {
-    printf "${BLUE}${BOLD}[INFO]${RESET} Project: ${BOLD}$1${RESET} | Type: ${CYAN}${BOLD}$2${RESET}\n"
-}
- 
+
 log_security_scan() {
     printf "${YELLOW}${BOLD}🔍 [SECURITY]${RESET} ${YELLOW}$1${RESET}\n"
 }
@@ -136,17 +109,10 @@ log_security_scan() {
 # ORGANIZATIONAL POLICIES (MODE-AWARE)
 # =============================================================================
  
-# Security settings (stricter in production)
-if [ "$TEST_MODE" = "true" ]; then
-    SECURITY_PATTERNS="password|secret|token"  # Reduced for testing
-    SECURITY_MAX_FILE_SIZE="10M"               # More lenient
-    SECURITY_FAIL_ON_SECRETS=false             # Warning only in test
-else
-    # SECURITY_PATTERNS="password|secret|token|key|credential|api_key|auth_token"
-    SECURITY_PATTERNS="password\s*[=:]\s*[\"']|secret\s*[=:]\s*[\"']|(?<!sonar\.)token\s*[=:]\s*[\"']|api_key\s*[=:]\s*[\"']|auth_token\s*[=:]\s*[\"']"
-    SECURITY_MAX_FILE_SIZE="5M"
-    SECURITY_FAIL_ON_SECRETS=true
-fi
+# Security settings
+SECURITY_PATTERNS="password\s*[=:]\s*[\"']|secret\s*[=:]\s*[\"']|(?<!sonar\.)token\s*[=:]\s*[\"']|api_key\s*[=:]\s*[\"']|auth_token\s*[=:]\s*[\"']"
+SECURITY_MAX_FILE_SIZE="5M"
+SECURITY_FAIL_ON_SECRETS=true
  
 # Build tool preferences
 PREFERRED_BUILD_TOOL=${PREFERRED_BUILD_TOOL:-"auto"}
@@ -155,12 +121,12 @@ PREFERRED_BUILD_TOOL=${PREFERRED_BUILD_TOOL:-"auto"}
 # PROJECT DETECTION AND VALIDATION
 # =============================================================================
  
-log_info "Detecting project configuration..."
- 
+printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Detecting project configuration...${RESET}\n"
+
 # Get current branch
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
-log_branch "$CURRENT_BRANCH"
- 
+printf "${PURPLE}${BOLD}[BRANCH]${RESET} Current branch: ${PURPLE}${BOLD}$CURRENT_BRANCH${RESET}\n"
+
 # Auto-detect project type
 DETECTED_TYPE=""
 if [ -f "package.json" ]; then
@@ -177,7 +143,7 @@ fi
 PROJECT_TYPE="${DETECTED_TYPE:-unknown}"
  
 PROJECT_NAME=$(basename "$(pwd)")
-log_project "$PROJECT_NAME" "$PROJECT_TYPE"
+printf "${BLUE}${BOLD}[INFO]${RESET} Project: ${BOLD}$PROJECT_NAME${RESET} | Type: ${CYAN}${BOLD}$PROJECT_TYPE${RESET}\n"
  
 # =============================================================================
 # OPTIMIZED JAVA PROJECT VALIDATION WITH COLORS
@@ -201,24 +167,13 @@ validate_java_project() {
         MAVEN_VERSION=$(mvn --version 2>/dev/null | head -1 | sed 's/Apache Maven //' | cut -d' ' -f1)
         log_build_tool "Maven $MAVEN_VERSION"
         
-        if [ "$TEST_MODE" = "true" ]; then
-            # Test mode: validate POM syntax only
-            log_debug "Validating Maven POM syntax..."
-            if mvn help:effective-pom -q > /dev/null 2>&1; then
-                java_compilation_success=true
-            else
-                log_error "Maven POM validation failed"
-                return 1
-            fi
+        # Validate and compile with Maven
+        printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Compiling Java sources with Maven...${RESET}\n"
+        if mvn compile -q 2>/dev/null; then
+            java_compilation_success=true
         else
-            # Production mode: full compilation
-            printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Compiling Java sources with Maven...${RESET}\n"
-            if mvn compile -q 2>/dev/null; then
-                java_compilation_success=true
-            else
-                log_error "Maven compilation failed - run 'mvn compile' for details"
-                return 1
-            fi
+            log_error "Maven compilation failed - run 'mvn compile' for details"
+            return 1
         fi
     
     # 2. GRADLE (Second Priority - Modern Android/Spring)
@@ -244,24 +199,13 @@ validate_java_project() {
             return 1
         fi
         
-        if [ "$TEST_MODE" = "true" ]; then
-            # Test mode: validate build files only
-            log_debug "Validating Gradle build configuration..."
-            if $GRADLE_CMD tasks --quiet > /dev/null 2>&1; then
-                java_compilation_success=true
-            else
-                log_error "Gradle build validation failed"
-                return 1
-            fi
+        # Compile Java sources with Gradle
+        printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Compiling Java sources with Gradle...${RESET}\n"
+        if $GRADLE_CMD compileJava --quiet 2>/dev/null; then
+            java_compilation_success=true
         else
-            # Production mode: compile Java sources
-            printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Compiling Java sources with Gradle...${RESET}\n"
-            if $GRADLE_CMD compileJava --quiet 2>/dev/null; then
-                java_compilation_success=true
-            else
-                log_error "Gradle compilation failed - run '$GRADLE_CMD compileJava' for details"
-                return 1
-            fi
+            log_error "Gradle compilation failed - run '$GRADLE_CMD compileJava' for details"
+            return 1
         fi
     
     # 3. ANT (Legacy Enterprise)
@@ -271,29 +215,18 @@ validate_java_project() {
         ANT_VERSION=$(ant -version 2>/dev/null | head -1 | cut -d' ' -f4)
         log_build_tool "Apache Ant $ANT_VERSION"
         
-        if [ "$TEST_MODE" = "true" ]; then
-            # Test mode: validate build.xml syntax
-            log_debug "Validating Ant build configuration..."
-            if ant -q -f build.xml -projecthelp > /dev/null 2>&1; then
+        # Compile with Ant if compile target exists
+        if ant -q -f build.xml -projecthelp 2>/dev/null | grep -q "compile"; then
+            printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Compiling Java sources with Ant...${RESET}\n"
+            if ant compile -q 2>/dev/null; then
                 java_compilation_success=true
             else
-                log_error "Ant build validation failed"
+                log_error "Ant compilation failed - run 'ant compile' for details"
                 return 1
             fi
         else
-            # Production mode: compile if compile target exists
-            if ant -q -f build.xml -projecthelp 2>/dev/null | grep -q "compile"; then
-                printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Compiling Java sources with Ant...${RESET}\n"
-                if ant compile -q 2>/dev/null; then
-                    java_compilation_success=true
-                else
-                    log_error "Ant compilation failed - run 'ant compile' for details"
-                    return 1
-                fi
-            else
-                log_warning "No 'compile' target found in build.xml - skipping compilation"
-                java_compilation_success=true
-            fi
+            log_warning "No 'compile' target found in build.xml - skipping compilation"
+            java_compilation_success=true
         fi
     
     # 4. FALLBACK: Raw javac (Simple Projects)
@@ -304,12 +237,8 @@ validate_java_project() {
         log_build_tool "javac $JAVA_VERSION (no build system)"
         
         # Find Java source files (performance optimized)
-        if [ "$TEST_MODE" = "true" ]; then
-            JAVA_FILES=$(find . -name "*.java" -not -path "./.git/*" | head -3)
-        else
-            # Production: only check staged Java files for performance
-            JAVA_FILES=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep '\.java$' | head -5)
-        fi
+        # Only check staged Java files for performance
+        JAVA_FILES=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep '\.java$' | head -5)
         
         if [ -n "$JAVA_FILES" ]; then
             JAVA_COUNT=$(echo "$JAVA_FILES" | wc -l)
@@ -356,24 +285,19 @@ validate_java_project() {
     # ADDITIONAL JAVA SECURITY CHECKS (COLORIZED)
     # =============================================================================
     
-    # Security: Check for dangerous Runtime.exec usage (only if not in test mode)
-    if [ "$TEST_MODE" != "true" ]; then
-        log_debug "Checking for security violations..."
+    # Security: Check for dangerous Runtime.exec usage
+    if find . -name "*.java" -path "*/src/main/*" 2>/dev/null | head -10 | xargs grep -l "Runtime\.getRuntime()\.exec\|ProcessBuilder" 2>/dev/null | grep -q .; then
+        log_error "Security violation: Runtime.exec() or ProcessBuilder usage detected"
+        return 1
+    fi
         
-        # Combined security checks for better performance
-        if find . -name "*.java" -path "*/src/main/*" 2>/dev/null | head -10 | xargs grep -l "Runtime\.getRuntime()\.exec\|ProcessBuilder" 2>/dev/null | grep -q .; then
-            log_error "Security violation: Runtime.exec() or ProcessBuilder usage detected"
-            return 1
-        fi
-        
-        # Performance: Check for System.out.println in production code (optimized)
-        PRINTLN_FILES=$(find . -name "*.java" -path "*/src/main/*" 2>/dev/null | head -10 | xargs grep -l "System\.out\.print\|System\.err\.print" 2>/dev/null)
-        if [ -n "$PRINTLN_FILES" ]; then
-            log_warning "System.out.println detected in production code - consider using proper logging"
-            if [ "$VERBOSE" = "true" ]; then
-                printf "${DIM}Files with System.out.println:${RESET}\n"
-                echo "$PRINTLN_FILES" | head -3 | sed 's/^/  /'
-            fi
+    # Performance: Check for System.out.println in production code (optimized)
+    PRINTLN_FILES=$(find . -name "*.java" -path "*/src/main/*" 2>/dev/null | head -10 | xargs grep -l "System\.out\.print\|System\.err\.print" 2>/dev/null)
+    if [ -n "$PRINTLN_FILES" ]; then
+        log_warning "System.out.println detected in production code - consider using proper logging"
+        if [ "$VERBOSE" = "true" ]; then
+            printf "${DIM}Files with System.out.println:${RESET}\n"
+            echo "$PRINTLN_FILES" | head -3 | sed 's/^/  /'
         fi
     fi
     
@@ -391,28 +315,27 @@ validate_dotnet_project() {
         DOTNET_VERSION=$(dotnet --version 2>/dev/null)
         log_build_tool ".NET $DOTNET_VERSION"
         
-        if [ "$TEST_MODE" = "true" ]; then
-            log_debug "Validating .NET project configuration..."
-            if dotnet build --no-restore --verbosity quiet --nologo 2>/dev/null; then
-                log_success ".NET project validation completed"
-            else
-                log_error ".NET project validation failed"
-                return 1
-            fi
-        else
-            printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Running .NET formatting validation...${RESET}\n"
-            if dotnet format --verify-no-changes --verbosity quiet 2>/dev/null; then
-                log_success ".NET formatting validation completed"
-            else
-                log_error ".NET formatting validation failed - run 'dotnet format' to fix"
-                return 1
-            fi
-            
-            if grep -r "ConnectionStrings.*localhost" --include="*.json" --include="*.config" . 2>/dev/null; then
-                log_error "Hardcoded connection strings detected"
-                return 1
-            fi
+        printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Running .NET validation...${RESET}\n"
+        
+        # Run build validation
+        if ! dotnet build --no-restore --verbosity quiet --nologo 2>/dev/null; then
+            log_error ".NET build validation failed"
+            return 1
         fi
+        
+        # Run formatting validation
+        if ! dotnet format --verify-no-changes --verbosity quiet 2>/dev/null; then
+            log_error ".NET formatting validation failed - run 'dotnet format' to fix"
+            return 1
+        fi
+        
+        # Check for hardcoded connection strings
+        if grep -r "ConnectionStrings.*localhost" --include="*.json" --include="*.config" . 2>/dev/null; then
+            log_error "Hardcoded connection strings detected"
+            return 1
+        fi
+        
+        log_success ".NET validation completed"
     else
         log_warning "dotnet CLI not available"
     fi
@@ -430,33 +353,27 @@ validate_nodejs_project() {
             return 1
         fi
         
-        if [ "$TEST_MODE" = "true" ]; then
-            log_debug "Validating package.json syntax..."
-            if node -e 'JSON.parse(require("fs").readFileSync("package.json"))' 2>/dev/null; then
-                log_success "Node.js project validation completed"
-            else
-                log_error "package.json validation failed"
+        # Validate package.json syntax
+        if ! node -e 'JSON.parse(require("fs").readFileSync("package.json"))' 2>/dev/null; then
+            log_error "package.json validation failed"
+            return 1
+        fi
+
+        if command -v npx >/dev/null 2>&1; then
+            printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Running ESLint validation...${RESET}\n"
+            if ! npx eslint . --max-warnings 0 2>/dev/null; then
+                log_error "ESLint validation failed - fix linting issues"
                 return 1
             fi
-        else
-            if command -v npx >/dev/null 2>&1; then
-                printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Running ESLint validation...${RESET}\n"
-                if npx eslint . --max-warnings 0 2>/dev/null; then
-                    log_success "ESLint validation completed"
-                else
-                    log_error "ESLint validation failed - fix linting issues"
+            log_success "ESLint validation completed"
+            
+            if [ -f "package-lock.json" ]; then
+                printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Running npm security audit...${RESET}\n"
+                if ! npm audit --audit-level moderate 2>/dev/null; then
+                    log_error "npm security audit failed - run 'npm audit fix'"
                     return 1
                 fi
-                
-                if [ -f "package-lock.json" ]; then
-                    printf "${BLUE}${BOLD}[INFO]${RESET} ${WHITE}Running npm security audit...${RESET}\n"
-                    if npm audit --audit-level moderate 2>/dev/null; then
-                        log_success "npm security audit completed"
-                    else
-                        log_error "npm security audit failed - run 'npm audit fix'"
-                        return 1
-                    fi
-                fi
+                log_success "npm security audit completed"
             fi
         fi
     else
@@ -571,46 +488,26 @@ validate_security
  
 printf "\n"
 printf "${BOLD}${BG_BLUE} 📊 SUMMARY ${RESET} ${BOLD}Validation completed for ${CYAN}$PROJECT_TYPE${RESET}${BOLD} project:${RESET}\n"
- 
-if [ "$TEST_MODE" = "true" ]; then
-    printf "   Mode: ${CYAN}${BOLD}🧪 TEST${RESET} ${CYAN}(non-blocking)${RESET}\n"
-elif [ "$DRY_RUN" = "true" ]; then
-    printf "   Mode: ${PURPLE}${BOLD}🔍 DRY RUN${RESET} ${PURPLE}(simulation)${RESET}\n"
+printf "   Mode: ${GREEN}${BOLD}🚀 PRODUCTION${RESET} ${GREEN}(enforced)${RESET}\n"
+
+# Print validation details based on project type
+if [ "$PROJECT_TYPE" = "java" ]; then
+    printf "   ${GREEN}✅ Java build validation (Maven/Gradle/Ant/javac)${RESET}\n"
+elif [ "$PROJECT_TYPE" = "dotnet" ]; then
+    printf "   ${GREEN}✅ .NET validation completed${RESET}\n"
+elif [ "$PROJECT_TYPE" = "nodejs" ]; then
+    printf "   ${GREEN}✅ Node.js validation completed${RESET}\n"
+elif [ "$PROJECT_TYPE" = "python" ]; then
+    printf "   ${GREEN}✅ Python validation completed${RESET}\n"
+elif [ "$PROJECT_TYPE" = "docker" ]; then
+    printf "   ${GREEN}✅ Docker validation completed${RESET}\n"
 else
-    printf "   Mode: ${GREEN}${BOLD}🚀 PRODUCTION${RESET} ${GREEN}(enforced)${RESET}\n"
+    printf "   ${GREEN}✅ Validation completed${RESET}\n"
 fi
- 
-case "$PROJECT_TYPE" in
-    "java")
-        printf "   ${GREEN}✅ Java build validation (Maven/Gradle/Ant/javac)${RESET}\n"
-        ;;
-    "dotnet")
-        printf "   ${GREEN}✅ .NET formatting and security validation${RESET}\n"
-        ;;
-    "nodejs")
-        printf "   ${GREEN}✅ Node.js ESLint and security audit${RESET}\n"
-        ;;
-    "python")
-        printf "   ${GREEN}✅ Python syntax and formatting validation${RESET}\n"
-        ;;
-    "docker")
-        printf "   ${GREEN}✅ Docker security and best practices${RESET}\n"
-        ;;
-    *)
-        printf "   ${GREEN}✅ General security and file validation${RESET}\n"
-        ;;
-esac
  
 printf "   ${GREEN}✅ Security scanning (secrets, sensitive files)${RESET}\n"
 printf "   ${GREEN}✅ File size and performance checks${RESET}\n"
 printf "   ${GREEN}✅ Organizational policies enforced${RESET}\n"
  
-if [ "$TEST_MODE" = "true" ]; then
-    log_success "Test validation completed - no enforcement applied"
-elif [ "$DRY_RUN" = "true" ]; then
-    log_success "Dry run completed - would $([ "$FAIL_ON_ERROR" = "true" ] && echo "enforce policies" || echo "show warnings") in production"
-else
-    log_success "Production validation passed - organizational standards enforced"
-fi
- 
+log_success "Production validation passed - organizational standards enforced"
 exit 0

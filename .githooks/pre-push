@@ -1,5 +1,4 @@
 #!/bin/sh
-# Pre-push hook for DevOps reusable workflows repository
 # Performs additional validation before pushing to remote
  
 echo "🚀 Running pre-push validation..."
