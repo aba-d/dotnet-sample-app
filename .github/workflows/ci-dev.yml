@@ -27,7 +27,7 @@ jobs:
   # # # Repository Contribution Compliance Gate
   # # # ------------------------
   Repository-Contribution-Compliance:
-    name: Repo Contribution Compliance
+    name: Repository Compliance
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
     with:
       base_branch: main
@@ -64,14 +64,14 @@ jobs:
   Sonarqube-scan:
     name: SonarQube Coverage & Quality Gate
     needs:  Repository-Contribution-Compliance
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-scan-template-new.yml@Feature-Deployment
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-template-m.yml@Feature-Deployment
     with:
       projectKey: 'org-testfordemo_dotnet-sample-app'
       organizationKey: org-testfordemo
       projectSlnPath: "dotnet-sample-app.sln"
       testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
-      # language: 'dotnet'
-      # language-version: '8.0'
+      language: 'dotnet'
+      language-version: '8.0'
       run-sonarqube-gate-check: 'no'
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -107,7 +107,7 @@ jobs:
   # Deploy to Dev (auto) ECS Task + Service
   # ------------------------
   ecs-deploy-dev:
-    needs: Prisma-Image-scan
+    needs: [ci, Prisma-Image-scan]
     name: Deploy to Dev
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatemanifest.yml@Feature-Deployment
     with:
