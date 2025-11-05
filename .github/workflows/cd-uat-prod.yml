@@ -67,7 +67,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     needs: download-image-tag
     name: Deploy to QA
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatebg.yml@Feature-Deployment
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatemanifest.yml@Feature-Deployment
     with:
       environment: "qa"
       app-language: "csharp"
