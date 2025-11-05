@@ -90,3 +90,4 @@ jobs:
       is-first-deploy: ${{ fromJSON(needs.ecs-deploy-QA.outputs.IS_FIRST_DEPLOY) }}
       live-service: ${{ needs.ecs-deploy-QA.outputs.LIVE_SERVICE }}
     secrets: inherit
+    
