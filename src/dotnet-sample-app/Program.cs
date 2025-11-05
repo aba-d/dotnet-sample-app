@@ -31,6 +31,13 @@ app.MapGet("/env", () =>
     return $"Application is running in {env} environment.";
 });
 
+// ✅ Add health check endpoint
+app.MapGet("/health", () =>
+{
+    // Optional: Add more checks here (DB, external services, etc.)
+    return Results.Ok(new { status = "UP" });
+});
+
 app.Run();
 
 // Make Program class public for integration testing
