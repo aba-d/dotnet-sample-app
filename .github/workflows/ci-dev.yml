@@ -1,5 +1,5 @@
 name: CI-Dev Pipeline
-
+description: CI pipeline for Dev environment - build, scan, test, package, and deploy to dev.
 on:
   workflow_dispatch:
   push:
