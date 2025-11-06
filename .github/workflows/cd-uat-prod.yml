@@ -67,7 +67,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     needs: download-image-tag
     name: Deploy to QA
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatemanifest.yml@Feature-Deployment
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatemanifest.yml@main
     with:
       environment: "qa"
       app-language: "csharp"
@@ -81,7 +81,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     needs: ecs-deploy-QA
     name: Switch Traffic to Live
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/manual-promotion.yml@Feature-Deployment
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/manual-promotion.yml@main
     with:
       environment: "qa"
       temp-listener-arn: ${{ needs.ecs-deploy-QA.outputs.TEMP_LISTENER_ARN }}

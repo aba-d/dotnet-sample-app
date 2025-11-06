@@ -26,46 +26,16 @@ jobs:
   # # # ------------------------
   # # # Repository Contribution Compliance Gate
   # # # ------------------------
-  Repository-Contribution-Compliance:
-    name: Repository Compliance Gate
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/repository-contribution-compliance-template.yml@main
+  CI-CD:
+    name: CI-Dev Pipeline
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/main-pipeline-template.yml@main
     with:
-      base_branch: main
-      jira_prefix: "SCRUM|PROJ|scrum|proj"
-  
-  # # # # ------------------------
-  # # # # Code Scan (Codeql)
-  # # # # ------------------------
-  Codeql-scan:
-    name: CodeQL Scan & Quality Gate
-    needs: Repository-Contribution-Compliance
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/codeql-template.yml@main
-    with:
-      language: 'csharp'
+      base-branch: main
+      jira-prefix: "SCRUM|PROJ|scrum|proj"
       projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
       buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
       run-codeql-gate-check: "no"
-    secrets: inherit
-  
-  # # # # ------------------------
-  # # # # Veracode
-  # # # # ------------------------
-  Veracode-scan:
-    name: Veracode SAST & Quality Gate
-    needs: Repository-Contribution-Compliance
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/veracode-baseline-scan-template.yml@main
-    with:
       run-veracode-gate-check: "yes"
-    secrets: inherit
-
-  # # # # ------------------------
-  # # # # Sonarqube scan
-  # # # # ------------------------
-  Sonarqube-scan:
-    name: Sonar Code Coverage & Quality Gate
-    needs:  Repository-Contribution-Compliance
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/sonarqube-template-m.yml@Feature-Deployment
-    with:
       projectKey: 'org-testfordemo_dotnet-sample-app'
       organizationKey: org-testfordemo
       projectSlnPath: "dotnet-sample-app.sln"
@@ -73,60 +43,11 @@ jobs:
       language: 'dotnet'
       language-version: '8.0'
       run-sonarqube-gate-check: 'no'
+      project-path: 'src/dotnet-sample-app'
+      dockerfile-path: 'docker/Dockerfile'
+      run-prisma-gate-check: "yes"
+      environment: 'dev'
+      app-language: "csharp"
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-  # # # ------------------------
-  # # # CI Stage (Build Image and Push to ECR)
-  # # # ------------------------
-  ci:
-    name: Build & Push Image to ECR
-    needs: [Sonarqube-scan, Veracode-scan, Codeql-scan]
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/docker-build-push.yml@Feature-Deployment
-    with:
-      app-language: csharp
-      project-path: 'src/dotnet-sample-app'
-      dockerfile-path: 'docker/Dockerfile'
-      language-version: '8.0'
-      environment: 'dev'
-    secrets: inherit
-
-  # # # # ------------------------
-  # # # # Prisma-Image-scan
-  # # # # ------------------------
-  Prisma-Image-scan:
-    name: Prisma Image Scan & Quality Gate
-    needs: ci
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/prisma-scan-template.yml@Feature-Deployment
-    with:
-      run-prisma-gate-check: "yes"
-    secrets: inherit
-
-  # ------------------------
-  # Deploy to Dev (auto) ECS Task + Service
-  # ------------------------
-  ecs-deploy-dev:
-    needs: [ci, Prisma-Image-scan]
-    name: Deploy to Dev
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ecs-deployment-templatemanifest.yml@Feature-Deployment
-    with:
-      environment: "dev"
-      app-language: "csharp"
-      image-tag: ${{ needs.ci.outputs.IMAGE_TAG }}
-    secrets: inherit
-
-  Switch-Traffic:
-    needs: ecs-deploy-dev
-    name: Switch Traffic to Live
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/manual-promotion.yml@Feature-Deployment
-    with:
-      environment: "dev"
-      temp-listener-arn: ${{ needs.ecs-deploy-dev.outputs.TEMP_LISTENER_ARN }}
-      idle-tg: ${{ needs.ecs-deploy-dev.outputs.IDLE_TG }}
-      idle-service: ${{ needs.ecs-deploy-dev.outputs.IDLE_SERVICE }}
-      is-first-deploy: ${{ fromJSON(needs.ecs-deploy-dev.outputs.IS_FIRST_DEPLOY) }}
-      live-service: ${{ needs.ecs-deploy-dev.outputs.LIVE_SERVICE}}
-      main-alb-listener-arn: ${{ needs.ecs-deploy-dev.outputs.MAIN_ALB_LISTENER_ARN }}
-    secrets: inherit
-    
