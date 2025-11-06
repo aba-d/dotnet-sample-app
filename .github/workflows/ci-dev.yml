@@ -26,9 +26,9 @@ jobs:
   # # # ------------------------
   # # # Repository Contribution Compliance Gate
   # # # ------------------------
-  Repository-Contribution-Compliance:
-    name: Repository Compliance Gate
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/main-pipeline-template.yml@Feature-Caller
+  CI-CD:
+    name: CI-Dev Pipeline
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/main-pipeline-template.yml@main
     with:
       base-branch: main
       jira-prefix: "SCRUM|PROJ|scrum|proj"
