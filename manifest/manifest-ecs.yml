@@ -45,9 +45,9 @@ environments:
         executionRoleName: ecsTaskExecutionRole
         ecrreponame: nonprodimagerepository
         alb:
-          arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d
+          arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:loadbalancer/app/qa-myapp-bluegreen-alb/f6769253796336df
           mainlisteners:
-            arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/myapp-bluegreen-alb/f93c1f7fc8a1b67d/c2749df7b4391a8f
+            arn: arn:aws:elasticloadbalancing:us-east-2:707733857215:listener/app/qa-myapp-bluegreen-alb/f6769253796336df/77d655804d63b1c3
         networkConfiguration:
           assignPublicIp: ENABLED
           subnets:
