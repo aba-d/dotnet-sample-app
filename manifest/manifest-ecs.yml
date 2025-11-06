@@ -81,10 +81,10 @@ environments:
         networkConfiguration:
           assignPublicIp: ENABLED
           subnets:
-            - subnet-05741c5e17cae42e3
-            - subnet-08a31fa8b5dec1cfa
+            - subnet-05741c5e17cae42ew
+            - subnet-08a31fa8b5dec1cfe
           securityGroups:
-            - sg-063ac0f34f2c86baa
+            - sg-063ac0f34f2c86ba2
         targetGroups:
           blue: arn:aws:elasticloadbalancing:us-east-2:707733857216:targetgroup/dotnet-sample-blue-tg/e9b3d3830f76c2b8
           green: arn:aws:elasticloadbalancing:us-east-2:707733857216:targetgroup/dotnet-sample-green-tg/5ca12b509fdda74c
