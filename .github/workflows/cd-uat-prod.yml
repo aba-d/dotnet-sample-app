@@ -25,6 +25,7 @@ jobs:
   # Step 1️⃣ Download IMAGE_TAG artifact from CI workflow
   # ------------------------
   download-image-tag:
+    name: Download IMAGE_TAG from CI
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     outputs:                           # <-- Job-level output
