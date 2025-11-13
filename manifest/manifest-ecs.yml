@@ -15,7 +15,7 @@ environments:
         executionRoleName: ecsTaskExecutionRole
         ecrreponame: nonprodimagerepository
         alb:
-          arn: arn:aws:elasticloadbalancing:us-east-2:054942704438:listener/app/dev-bluegreen-alb/cb8803a7b9f04361
+          arn: arn:aws:elasticloadbalancing:us-east-2:054942704438:loadbalancer/app/dev-bluegreen-alb/cb8803a7b9f04361
           mainlisteners:
             arn: arn:aws:elasticloadbalancing:us-east-2:054942704438:listener/app/dev-bluegreen-alb/cb8803a7b9f04361/abbe829653294f6f
         networkConfiguration:
