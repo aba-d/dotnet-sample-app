@@ -7,7 +7,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-    <!-- Pin VaultSharp to an exact version requested by the team. NuGet may still resolve to a newer patch if constraints require it. -->
     <PackageReference Include="VaultSharp" Version="1.16.0" />
   </ItemGroup>
 </Project>
