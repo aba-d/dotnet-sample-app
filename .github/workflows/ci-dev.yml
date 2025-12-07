@@ -26,7 +26,7 @@ jobs:
   # Build,scan,test,package,deploy to dev environment automatically.
   CI-CD:
     name: CI-Dev Pipeline
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/main-pipeline-template.yml@main
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/main-pipeline-template.yml@Feature-Mp
     with:
       projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
       buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
