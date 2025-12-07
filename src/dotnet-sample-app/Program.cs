@@ -4,15 +4,28 @@ using dotnet_sample_app.Infrastructure.Vault;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Load Vault secrets at startup
-var vaultSecrets = await VaultSecretService.GetSecretsAsync();
-
-builder.Configuration.AddInMemoryCollection(
-    vaultSecrets.ToDictionary(
-        x => x.Key,
-        x => x.Value?.ToString()
-    )
-);
+// ✅ Load Vault secrets at startup (optional)
+Dictionary<string, object>? vaultSecrets = null;
+try
+{
+    // Attempt to load Vault secrets; if VAULT_* env vars are missing or Vault is unreachable
+    // we continue startup with existing configuration (useful for tests and local dev).
+    vaultSecrets = await VaultSecretService.GetSecretsAsync();
+    if (vaultSecrets != null && vaultSecrets.Any())
+    {
+        builder.Configuration.AddInMemoryCollection(
+            vaultSecrets.ToDictionary(
+                x => x.Key,
+                x => x.Value?.ToString()
+            )
+        );
+    }
+}
+catch (Exception ex)
+{
+    // Do not crash the app on Vault errors during startup; log and continue.
+    Console.WriteLine($"[WARN] Vault secrets not loaded: {ex.Message}");
+}
 
 // Add services to the container.
 builder.Services.AddControllers();

@@ -76,7 +76,7 @@ namespace dotnet_sample_app.Infrastructure.Vault
 
                 // Look for ctor(Vault address, IAuthMethodInfo)
                 var settingsCtor = typeof(VaultClientSettings).GetConstructor(new[] { typeof(string), authInterface });
-                if (settingsCtor != null && authInterface.IsAssignableFrom(authMethod.GetType()))
+                if (settingsCtor != null && authInterface.IsInstanceOfType(authMethod))
                     return (VaultClientSettings)settingsCtor.Invoke(new object[] { address, authMethod });
 
                 // Try constructor with the concrete auth type
