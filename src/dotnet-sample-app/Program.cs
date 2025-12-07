@@ -62,6 +62,23 @@ app.MapGet("/health", () =>
     return Results.Ok(new { status = "UP" });
 });
 
+// Demo endpoint to show a Vault value (username from demo/db)
+app.MapGet("/vault-demo", async () =>
+{
+    try
+    {
+        var username = await VaultSecretService.GetSecretValueAsync("demo/db", "username");
+        if (string.IsNullOrEmpty(username))
+            return Results.NotFound(new { message = "Vault value not found or Vault not configured" });
+
+        return Results.Ok(new { username });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, statusCode: 500);
+    }
+});
+
 app.Run();
 
 // Make Program class public for integration testing

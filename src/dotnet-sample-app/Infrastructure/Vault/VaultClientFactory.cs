@@ -14,10 +14,22 @@ namespace dotnet_sample_app.Infrastructure.Vault
             if (string.IsNullOrWhiteSpace(vaultAddress))
                 throw new Exception("VAULT_ADDR environment variable is not set");
 
-            if (string.IsNullOrWhiteSpace(role))
-                throw new Exception("VAULT_ROLE environment variable is not set");
+            // If a role is provided, prefer AWS IAM auth first.
+            if (!string.IsNullOrWhiteSpace(role))
+            {
+                var awsAuth = CreateAwsAuthMethod(role, region: "us-east-2");
+                if (awsAuth != null)
+                {
+                    var settings = CreateSettings(vaultAddress, awsAuth);
+                    Console.WriteLine($"Using AWS IAM Vault auth with type: {awsAuth.GetType().FullName}");
+                    return new VaultClient(settings);
+                }
 
-            // Prefer token-based auth for newer VaultSharp versions
+                // If role was provided but we couldn't construct AWS auth, log and continue to token fallback
+                Console.WriteLine("VAULT_ROLE provided but AWS auth type not available in VaultSharp; falling back to token if present.");
+            }
+
+            // Token fallback: use VAULT_TOKEN if provided
             var token = Environment.GetEnvironmentVariable("VAULT_TOKEN");
             if (!string.IsNullOrWhiteSpace(token))
             {
@@ -27,16 +39,7 @@ namespace dotnet_sample_app.Infrastructure.Vault
                 return new VaultClient(settings);
             }
 
-            // Try to create an AWS IAM auth method via reflection.
-            var awsAuth = CreateAwsAuthMethod(role, region: "us-east-2");
-            if (awsAuth != null)
-            {
-                var settings = CreateSettings(vaultAddress, awsAuth);
-                Console.WriteLine($"Using AWS IAM Vault auth with type: {awsAuth.GetType().FullName}");
-                return new VaultClient(settings);
-            }
-
-            throw new NotSupportedException("No supported Vault auth method found. Provide VAULT_TOKEN or use a VaultSharp version that supports AWS IAM.");
+            throw new NotSupportedException("No supported Vault auth method found. Provide VAULT_ROLE (with a VaultSharp that supports AWS IAM) or VAULT_TOKEN.");
 
             // Local helpers
             object? CreateAwsAuthMethod(string role, string region)
