@@ -1,7 +1,18 @@
 using dotnet_sample_app.Models;
 using Microsoft.OpenApi.Models;
+using dotnet_sample_app.Infrastructure.Vault;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ✅ Load Vault secrets at startup
+var vaultSecrets = await VaultSecretService.GetSecretsAsync();
+
+builder.Configuration.AddInMemoryCollection(
+    vaultSecrets.ToDictionary(
+        x => x.Key,
+        x => x.Value?.ToString()
+    )
+);
 
 // Add services to the container.
 builder.Services.AddControllers();

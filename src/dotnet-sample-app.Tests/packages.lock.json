@@ -700,6 +700,11 @@
         "resolved": "4.5.4",
         "contentHash": "zteT+G8xuGu6mS+mzDzYXbzS7rd3K6Fjb9RiZlYlJPam2/hU7JCBZBVEcywNuR+oZ1ncTvc/cq0faRr3P01OVg=="
       },
+      "VaultSharp": {
+        "type": "Transitive",
+        "resolved": "1.17.5",
+        "contentHash": "O7nSIR2Y0deisO3qt40fHvXxv6Vv6Wxs+1SmWE975rZ8wUphg0URGUMptwKXOa4C2ItQ84qMi0loXjVHFhrDGQ=="
+      },
       "xunit.abstractions": {
         "type": "Transitive",
         "resolved": "2.0.3",
@@ -744,7 +749,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Data.SqlClient": "[5.2.0, )",
-          "Swashbuckle.AspNetCore": "[6.6.2, )"
+          "Swashbuckle.AspNetCore": "[6.6.2, )",
+          "VaultSharp": "[1.16.0, )"
         }
       }
     }
