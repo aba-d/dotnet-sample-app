@@ -17,6 +17,30 @@ namespace dotnet_sample_app.Infrastructure.Vault
             // If a role is provided, prefer AWS IAM auth first.
             if (!string.IsNullOrWhiteSpace(role))
             {
+                // Diagnostic: list VaultSharp-related assemblies and available AWS auth types
+                try
+                {
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+                        .Where(a => a.GetName().Name?.StartsWith("VaultSharp") == true)
+                        .ToArray();
+
+                    foreach (var a in assemblies)
+                    {
+                        Console.WriteLine($"[VaultDiag] Assembly: {a.GetName().Name} {a.GetName().Version}");
+                        try
+                        {
+                            var awsTypes = a.GetTypes().Where(t => t.Namespace != null && t.Namespace.Contains("AuthMethods") && t.Name.Contains("AWS")).ToArray();
+                            foreach (var at in awsTypes)
+                                Console.WriteLine($"[VaultDiag] Type: {at.FullName}");
+                        }
+                        catch { /* ignore type load issues for diagnostic */ }
+                    }
+                }
+                catch (Exception diagEx)
+                {
+                    Console.WriteLine($"[VaultDiag] Failed to enumerate VaultSharp assemblies: {diagEx.Message}");
+                }
+
                 var awsAuth = CreateAwsAuthMethod(role, region: "us-east-2");
                 if (awsAuth != null)
                 {
