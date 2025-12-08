@@ -41,16 +41,24 @@ namespace dotnet_sample_app.Infrastructure.Vault
                     Console.WriteLine($"[VaultDiag] Failed to enumerate VaultSharp assemblies: {diagEx.Message}");
                 }
 
-                var awsAuth = CreateAwsAuthMethod(role, region: "us-east-2");
+                // Try a flexible runtime scan for any AWS auth types present in loaded assemblies.
+                var awsAuth = FindAndCreateAwsAuth(role, region: Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-2");
                 if (awsAuth != null)
                 {
-                    var settings = CreateSettings(vaultAddress, awsAuth);
-                    Console.WriteLine($"Using AWS IAM Vault auth with type: {awsAuth.GetType().FullName}");
-                    return new VaultClient(settings);
+                    try
+                    {
+                        var settings = CreateSettings(vaultAddress, awsAuth);
+                        Console.WriteLine($"Using AWS IAM Vault auth with type: {awsAuth.GetType().FullName}");
+                        return new VaultClient(settings);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to create VaultClientSettings with AWS auth type {awsAuth.GetType().FullName}: {ex.Message}");
+                    }
                 }
 
                 // If role was provided but we couldn't construct AWS auth, log and continue to token fallback
-                Console.WriteLine("VAULT_ROLE provided but AWS auth type not available in VaultSharp; falling back to token if present.");
+                Console.WriteLine("VAULT_ROLE provided but no usable AWS auth type found in loaded VaultSharp assemblies; falling back to token if present.");
             }
 
             // Token fallback: use VAULT_TOKEN if provided
@@ -66,32 +74,89 @@ namespace dotnet_sample_app.Infrastructure.Vault
             throw new NotSupportedException("No supported Vault auth method found. Provide VAULT_ROLE (with a VaultSharp that supports AWS IAM) or VAULT_TOKEN.");
 
             // Local helpers
-            object? CreateAwsAuthMethod(string role, string region)
+
+            // New: flexible discovery that scans loaded assemblies for any type implementing IAuthMethodInfo
+            object? FindAndCreateAwsAuth(string role, string region)
             {
                 if (string.IsNullOrWhiteSpace(role))
                     return null;
 
-                string[] awsTypeCandidates = new[] {
-                    "VaultSharp.V1.AuthMethods.AWS.AWSIAMAuthMethodInfo",
-                    "VaultSharp.V1.AuthMethods.AWS.AWSAuthMethodInfo",
-                    "VaultSharp.V1.AuthMethods.AWS.AwsAuthMethodInfo"
-                };
+                var authInterface = typeof(VaultSharp.V1.AuthMethods.IAuthMethodInfo);
 
-                foreach (var typeName in awsTypeCandidates)
+                // Gather candidate types from loaded assemblies
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                var candidates = new List<Type>();
+                foreach (var a in assemblies)
                 {
-                    var t = Type.GetType(typeName + ", VaultSharp") ?? Type.GetType(typeName);
-                    if (t == null)
-                        continue;
+                    Type[] types = Array.Empty<Type>();
+                    try
+                    {
+                        types = a.GetTypes();
+                    }
+                    catch { continue; }
 
-                    // Prefer ctor (string role, string region)
-                    var ctor = t.GetConstructor(new[] { typeof(string), typeof(string) });
-                    if (ctor != null)
-                        return ctor.Invoke(new object[] { role, region });
+                    foreach (var t in types)
+                    {
+                        if (t == null) continue;
+                        if (!authInterface.IsAssignableFrom(t)) continue;
+                        var name = (t.Name ?? string.Empty).ToLowerInvariant();
+                        var ns = (t.Namespace ?? string.Empty).ToLowerInvariant();
+                        // Heuristics: type name or namespace contains "aws" or "awsiam"
+                        if (name.Contains("aws") || name.Contains("awsiam") || ns.Contains("authmethods.aws"))
+                            candidates.Add(t);
+                    }
+                }
 
-                    // Fallback to ctor (string role)
-                    ctor = t.GetConstructor(new[] { typeof(string) });
-                    if (ctor != null)
-                        return ctor.Invoke(new object[] { role });
+                if (!candidates.Any())
+                {
+                    Console.WriteLine("[VaultDiag] No candidate AWS auth types found via flexible scan.");
+                    return null;
+                }
+
+                Console.WriteLine($"[VaultDiag] Found {candidates.Count} AWS auth candidate types");
+
+                // Try to instantiate each candidate with multiple strategies
+                foreach (var t in candidates)
+                {
+                    try
+                    {
+                        Console.WriteLine($"[VaultDiag] Trying to construct AWS auth type: {t.FullName}");
+
+                        // 1) Try ctor (string role, string region)
+                        var ctor = t.GetConstructor(new[] { typeof(string), typeof(string) });
+                        if (ctor != null)
+                        {
+                            var inst = ctor.Invoke(new object[] { role, region });
+                            if (authInterface.IsInstanceOfType(inst)) return inst;
+                        }
+
+                        // 2) Try ctor (string role)
+                        ctor = t.GetConstructor(new[] { typeof(string) });
+                        if (ctor != null)
+                        {
+                            var inst = ctor.Invoke(new object[] { role });
+                            if (authInterface.IsInstanceOfType(inst)) return inst;
+                        }
+
+                        // 3) Try parameterless ctor then set properties 'Role' and 'Region' if present
+                        ctor = t.GetConstructor(Type.EmptyTypes);
+                        if (ctor != null)
+                        {
+                            var inst = ctor.Invoke(Array.Empty<object>());
+                            var roleProp = t.GetProperty("Role") ?? t.GetProperty("role") ?? t.GetProperty("AWSRole") ?? t.GetProperty("awsRole");
+                            var regionProp = t.GetProperty("Region") ?? t.GetProperty("region") ?? t.GetProperty("AWSRegion") ?? t.GetProperty("awsRegion");
+                            if (roleProp != null && roleProp.CanWrite)
+                                roleProp.SetValue(inst, role);
+                            if (regionProp != null && regionProp.CanWrite)
+                                regionProp.SetValue(inst, region);
+
+                            if (authInterface.IsInstanceOfType(inst)) return inst;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[VaultDiag] Failed to construct candidate {t.FullName}: {ex.Message}");
+                    }
                 }
 
                 return null;
