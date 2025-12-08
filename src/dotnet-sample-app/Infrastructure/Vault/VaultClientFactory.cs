@@ -86,6 +86,7 @@ namespace dotnet_sample_app.Infrastructure.Vault
                 // Gather candidate types from loaded assemblies
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                 var candidates = new List<Type>();
+                var skippedAbstractOrInterface = new List<Type>();
                 foreach (var a in assemblies)
                 {
                     Type[] types = Array.Empty<Type>();
@@ -99,11 +100,39 @@ namespace dotnet_sample_app.Infrastructure.Vault
                     {
                         if (t == null) continue;
                         if (!authInterface.IsAssignableFrom(t)) continue;
+                        // Skip interfaces and abstract base types for direct instantiation
+                        if (t.IsInterface || t.IsAbstract)
+                        {
+                            skippedAbstractOrInterface.Add(t);
+                            continue;
+                        }
                         var name = (t.Name ?? string.Empty).ToLowerInvariant();
                         var ns = (t.Namespace ?? string.Empty).ToLowerInvariant();
                         // Heuristics: type name or namespace contains "aws" or "awsiam"
                         if (name.Contains("aws") || name.Contains("awsiam") || ns.Contains("authmethods.aws"))
                             candidates.Add(t);
+                    }
+                }
+
+                if (!candidates.Any() && skippedAbstractOrInterface.Any())
+                {
+                    Console.WriteLine($"[VaultDiag] Found {skippedAbstractOrInterface.Count} abstract/interface AWS-related types. Will attempt to locate concrete implementations.");
+                    // Search for concrete subclasses/implementations of the skipped types
+                    foreach (var baseType in skippedAbstractOrInterface)
+                    {
+                        foreach (var a in assemblies)
+                        {
+                            Type[] types = Array.Empty<Type>();
+                            try { types = a.GetTypes(); } catch { continue; }
+                            foreach (var t in types)
+                            {
+                                if (t == null) continue;
+                                if (t.IsAbstract || t.IsInterface) continue;
+                                if (!baseType.IsAssignableFrom(t)) continue;
+                                // add if not already present
+                                if (!candidates.Contains(t)) candidates.Add(t);
+                            }
+                        }
                     }
                 }
 
