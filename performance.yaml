@@ -8,7 +8,7 @@ execution:
 scenarios:
   simple_ui:
     requests:
-      - url: http://3.134.95.55:5000/   # <-- replace with your .NET page URL
+      - url: http://dev-bluegreen-alb-815375486.us-east-2.elb.amazonaws.com:8081/env   # <-- replace with your .NET page URL
         method: GET
 
 reporting:
