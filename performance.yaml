@@ -1,0 +1,21 @@
+# performance.yaml
+execution:
+  - concurrency: 2      # simulate 50 users
+    ramp-up: 30s         # gradually start users in 30 seconds
+    hold-for: 1m         # run test for 1 minute
+    scenario: simple_ui
+
+scenarios:
+  simple_ui:
+    requests:
+      - url: http://3.134.95.55:5000/   # <-- replace with your .NET page URL
+        method: GET
+
+reporting:
+  - module: blazemeter
+
+# Optional: Fail GitHub Actions if page is slow
+passfail:
+  - criteria:
+      - avg-rt > 500ms for 30s   # fail if average response > 500ms
+    fail: true
