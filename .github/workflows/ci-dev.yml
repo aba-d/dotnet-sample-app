@@ -47,16 +47,5 @@ jobs:
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} 
-      # NEW: BlazeMeter Taurus Performance Test
-  Taurus-Performance-Test:
-    name: BlazeMeter Taurus Performance
-    needs: CI-CD  # Run after CI/CD completes
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/main-pipeline-template.yml@Feature-Mp
-    with:
-      taurus_config: "performance.yaml"  # Path to Taurus YAML
-      language: "dotnet"                              # Match your app language/runtime
-      environment: "dev"                              # Environment name
-      test_id: "2583642"                              # Optional existing BlazeMeter Test ID
-    secrets:
       BLAZEMETER_API_KEY: ${{ secrets.BLAZEMETER_API_KEY }}
       BLAZEMETER_API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
