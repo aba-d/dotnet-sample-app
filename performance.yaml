@@ -1,21 +1,25 @@
 # performance.yaml
+
 execution:
-  - concurrency: 2      # simulate 50 users
-    ramp-up: 30s         # gradually start users in 30 seconds
-    hold-for: 1m         # run test for 1 minute
+  - concurrency: 2        # number of virtual users
+    ramp-up: 30s          # ramp users over 30 seconds
+    hold-for: 1m          # steady state duration
     scenario: simple_ui
 
 scenarios:
   simple_ui:
     requests:
-      - url: http://dev-bluegreen-alb-815375486.us-east-2.elb.amazonaws.com/env   # <-- replace with your .NET page URL
+      - url: http://dev-bluegreen-alb-815375486.us-east-2.elb.amazonaws.com/env
         method: GET
 
 reporting:
   - module: blazemeter
+    settings:
+      test-name: ${BZM_TEST_NAME}
+      project: ${BZM_PROJECT_NAME}
+      workspace: ${BZM_WORKSPACE_NAME}
 
-# Optional: Fail GitHub Actions if page is slow
 passfail:
   - criteria:
-      - avg-rt > 500ms for 30s   # fail if average response > 500ms
+      - avg-rt > 500ms for 30s
     fail: true
