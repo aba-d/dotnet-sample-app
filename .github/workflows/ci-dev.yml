@@ -7,6 +7,7 @@ on:
       - Feature-*
       - feature-*
       - main
+      - TestCodeBuildRunner
   pull_request:
     types: [opened, edited, synchronize, reopened]
     branches:
@@ -14,6 +15,7 @@ on:
       - integration
       - develop
       - Feature-Test
+      - TestCodeBuildRunner
 
 permissions:
   security-events: write
