@@ -23,27 +23,32 @@ permissions:
   id-token: write
 
 jobs:
-  # Build,scan,test,package,deploy to dev environment automatically.
-  CI-CD:
-    name: CI-Dev Pipeline
-    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/main-pipeline-template.yml@main
-    with:
-      projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
-      buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
-      run-codeql-gate-check: "no"
-      run-veracode-gate-check: "yes"
-      projectKey: 'org-testfordemo_dotnet-sample-app'
-      organizationKey: org-testfordemo
-      projectSlnPath: "dotnet-sample-app.sln"
-      testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
-      language: 'dotnet'
-      language-version: '8.0'
-      run-sonarqube-gate-check: 'no'
-      project-path: 'src/dotnet-sample-app'
-      dockerfile-path: 'docker/Dockerfile'
-      run-prisma-gate-check: "yes"
-      environment: 'dev'
-      app-language: "csharp"
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  Hello-World-Job:
+    runs-on: codebuild-GitHub-Runners-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - run: echo "Hello World!"
+
+  # # Build,scan,test,package,deploy to dev environment automatically.
+  # CI-CD:
+  #   name: CI-Dev Pipeline
+  #   uses: aba-enterprise/enterprise-ci-templates/.github/workflows/main-pipeline-template.yml@main
+  #   with:
+  #     projectPath: 'src/dotnet-sample-app/dotnet-sample-app.csproj'
+  #     buildCommand: 'dotnet publish src/dotnet-sample-app/dotnet-sample-app.csproj -c Release -o publishoutput'
+  #     run-codeql-gate-check: "no"
+  #     run-veracode-gate-check: "yes"
+  #     projectKey: 'org-testfordemo_dotnet-sample-app'
+  #     organizationKey: org-testfordemo
+  #     projectSlnPath: "dotnet-sample-app.sln"
+  #     testProjectPath: "src/dotnet-sample-app.Tests/dotnet-sample-app.Tests.csproj"
+  #     language: 'dotnet'
+  #     language-version: '8.0'
+  #     run-sonarqube-gate-check: 'no'
+  #     project-path: 'src/dotnet-sample-app'
+  #     dockerfile-path: 'docker/Dockerfile'
+  #     run-prisma-gate-check: "yes"
+  #     environment: 'dev'
+  #     app-language: "csharp"
+  #   secrets:
+  #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
