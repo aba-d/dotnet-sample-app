@@ -115,7 +115,3 @@ ci:
     # Keep the CodeBuild project and the ARC scale set named identically so this
     # value is the same on either fleet and only `backend` ever changes.
     labels: sample-node-app-runner
-
-  # NOTE: the job timeout is set centrally by the reusable workflow (20 minutes,
-  # or 30 for Windows builds). It is intentionally NOT an app-team setting, so
-  # there is no timeoutMinutes key here.
