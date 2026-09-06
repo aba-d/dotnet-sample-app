@@ -22,12 +22,12 @@ metadata:
   # Identifier for the app. The workflow uses it to name the uploaded build
   # artifact (<name>-build) and to label logs, so every run is traceable to a
   # specific application. REQUIRED.
-  name: sample-node-app
+  name: dotnet-sample-app
 
   # Selects the pipeline path. The workflow uses this to pick the default
   # install command, the CodeQL language pack, and shell behavior. REQUIRED.
   # One of: node | dotnet | java | python | dotnet-framework
-  language: node
+  language: dotnet
 
   # Classifies the app: service | library | lambda | static-site. Informational
   # today (inventory, dashboards, and future per-type behavior); CI runs without it.
@@ -46,22 +46,22 @@ build:
 
   # How to compile/produce the app. Kept here (not in the template) because build
   # targets and scripts genuinely vary from app to app. REQUIRED to produce output.
-  buildCommand: "npm run build"
+  buildCommand: "dotnet build --configuration Release --no-restore"
 
   # Directory the install/build/test commands run in. Template default is ".".
   # Set it when the app's code lives in a subfolder (e.g. "src").
-  workingDirectory: "."
+  workingDirectory: "src"
 
   # What to upload as the build artifact after a green build. This artifact is
   # the CI deliverable the separate <app>-deploy repo consumes, so the path is
   # app-specific and REQUIRED for anything downstream to use the build.
-  artifactPath: "dist/"
+  artifactPath: "src/**/bin/Release/"
 
 
 test:
   # The test command. Stays in config because test runners and scripts differ per
   # app. If empty, the test stage is skipped.
-  command: "npm test -- --ci"
+  command: "dotnet test --configuration Release --no-build --collect:'XPlat Code Coverage'"
 
   coverage:
     # Whether this app gates on coverage at all. Some apps (e.g. static sites)
@@ -77,12 +77,7 @@ test:
 quality:
   # Lint/format check command. Per-app because the tool and rules differ. Leave
   # as "" to skip — the workflow skips empty commands (e.g. legacy repos).
-  lint: "npm run lint"
-
-  # OPTIONAL — a formatting check kept separate from lint so it can pass/fail
-  # independently of linting. Omit if the app has no separate format step.
-  format: "npm run format:check"
-
+  lint: "dotnet format --verify-no-changes"
 
 security:
   # Run dependency review on PRs (flags vulnerable or disallowed packages). A

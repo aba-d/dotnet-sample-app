@@ -19,7 +19,7 @@ jobs:
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ci-template.yml@feature-ciconfig
     with:
       config-path: ci-config/config.yml
-      bootstrap-runner: arc-linux
+      bootstrap-runner: ubuntu-latest
     permissions:
       contents: read
       security-events: write
