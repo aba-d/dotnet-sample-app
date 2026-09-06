@@ -1,101 +1,79 @@
-# =============================================================================
-#  CiConfig/config.yml  —  per-application CI values (annotated reference)
-#
-#  This file holds ONLY the values specific to THIS app. All pipeline logic and
-#  shared defaults live in the reusable workflow (ci-template.yml); it parses the
-#  keys below and runs: install -> lint -> build -> test -> publish artifact.
-#
-#  Guiding rule: if a value would be identical for every repo of a language, it
-#  belongs in the template as a default — not here. Keep this file small.
-#
-#  The concrete values below are for a Node service; comments note how each
-#  field generalizes to other languages.
-# =============================================================================
-
 
 # Version of THIS file's schema. Lets the reusable workflow evolve its parser
-# later (e.g. ci/v2) without breaking repos still written for the old shape.
-apiVersion: ci/v1
-
+# later (e.g. ci/v3) without breaking repos still written for the old shape.
+apiVersion: ci/v2
 
 metadata:
   # Identifier for the app. The workflow uses it to name the uploaded build
-  # artifact (<name>-build) and to label logs, so every run is traceable to a
-  # specific application. REQUIRED.
+  # artifact, the image repository, and (by default) the scanner project names.
   name: dotnet-sample-app
 
-  # Selects the pipeline path. The workflow uses this to pick the default
-  # install command, the CodeQL language pack, and shell behavior. REQUIRED.
-  # One of: node | dotnet | java | python | dotnet-framework
   language: dotnet
 
-  # Classifies the app: service | library | lambda | static-site. Informational
-  # today (inventory, dashboards, and future per-type behavior); CI runs without it.
+  # Runtime version the scanners set up when they run tests/builds themselves.
+  languageVersion: "8.0"
+
+  # Classifies the app: service | library | lambda | static-site. Informational,
+  # but the workflow also uses it to decide which stages even apply (e.g. a
+  # static-site builds no image, so the image scan is skipped centrally).
   type: service
 
-  # Owning team(s). Drives review routing and "who to ping when the build breaks".
-  # Not needed for CI to run, but important for operability.
-  owners: ["@org/frontend-platform"]
-
-
 build:
-  # NOTE: the install command is set centrally by the reusable workflow per
-  # language (node -> "npm ci", dotnet -> "dotnet restore", java -> Maven,
-  # python -> pip, dotnet-framework -> "nuget restore"). It is intentionally NOT
-  # an app-team setting, so there is no installCommand key here.
-
-  # How to compile/produce the app. Kept here (not in the template) because build
-  # targets and scripts genuinely vary from app to app. REQUIRED to produce output.
+  # How to compile/produce the app.
   buildCommand: "dotnet build --configuration Release --no-restore"
 
-  # Directory the install/build/test commands run in. Template default is ".".
-  # Set it when the app's code lives in a subfolder (e.g. "src").
+  # Directory the restore/build/test commands run in. Template default is ".".
   workingDirectory: "."
 
-  # What to upload as the build artifact after a green build. This artifact is
-  # the CI deliverable the separate <app>-deploy repo consumes, so the path is
-  # app-specific and REQUIRED for anything downstream to use the build.
+  # What to upload as the build artifact after a green build.
   artifactPath: "src/**/bin/Release/"
+
+  # Solution / main project path. Scanners that build the app themselves
+  # (SonarScanner for .NET, CodeQL autobuild) need this.
+  projectPath: "src/DotnetSampleApp.sln"
+
+  # Dockerfile for the runnable image. Leave "" for types that ship no image
+  # (library, static-site) — the workflow then skips image build + image scan.
+  dockerfilePath: "Dockerfile"
 
 test:
   # The test command. Stays in config because test runners and scripts differ per
-  # app. If empty, the test stage is skipped.
+  # app. If empty, the org test policy fails the pipeline (tests are mandatory —
+  # see org-policy.yml); it is not a way to opt out.
   command: "dotnet test --configuration Release --no-build --collect:'XPlat Code Coverage'"
 
-  coverage:
-    # Whether this app gates on coverage at all. Some apps (e.g. static sites)
-    # legitimately have none, so it is a per-app switch rather than a global rule.
-    enabled: true
+  # Path to the test project(s), for scanners that run the tests themselves.
+  testProjectPath: "test/DotnetSampleApp.Tests.csproj"
 
-    # Minimum coverage %. Recorded here as the app's stated contract; the actual
-    # enforcement happens inside the test tool's own config (jest / JaCoCo /
-    # coverlet) which the `command` above invokes.
-    threshold: 80
-
+  # Where the workflow collects the coverage report to hand to the code-quality
+  # platform. Vendor-neutral — it is just a file glob.
+  coverageReport: "**/TestResults/**/coverage.cobertura.xml"
 
 quality:
   # Lint/format check command. Per-app because the tool and rules differ. Leave
   # as "" to skip — the workflow skips empty commands (e.g. legacy repos).
   lint: "dotnet format --verify-no-changes"
 
-security:
-  # Run dependency review on PRs (flags vulnerable or disallowed packages). A
-  # toggle so a repo with a different supply-chain gate can opt out.
-  dependencyScan: true
+scan:
+  # Code-quality + coverage platform (SonarQube today).
+  codeQuality:
+    projectKey: dotnet-sample-app
+    organizationKey: aba-enterprise
 
-  # Run secret scanning (gitleaks) to catch committed credentials. A toggle, but
-  # should be true for essentially every repo.
-  secretScan: true
+  # SAST / application-security policy platform (Veracode today). Normally just
+  # the application profile name registered in that platform.
+  sast:
+    profile: dotnet-sample-app
 
-  # Run SAST static analysis (CodeQL). A toggle because some repos scan elsewhere.
-  # Note: CodeQL is skipped automatically for .NET Framework (Windows-only build).
-  sast: true
-
+  # Container-image vulnerability scanner (Prisma today). The image the pipeline
+  # builds and the scanner inspects; defaults to metadata.name if omitted.
+  image:
+    repository: dotnet-sample-app
 
 ci:
   runner:
     # Which self-hosted fleet runs the heavy build:
-    #   codebuild -> AWS CodeBuild (runner label is built from `project` below)
+    #   codebuild -> AWS CodeBuild (runner label is built from `labels` below)
     #   k8s       -> Kubernetes / ARC (runner label is taken from `labels` below)
     # This is the single knob to move a repo between fleets — no other change needed.
     backend: codebuild
