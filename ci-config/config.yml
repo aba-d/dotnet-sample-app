@@ -1,13 +1,10 @@
 
-# Version of THIS file's schema. Lets the reusable workflow evolve its parser
-# later (e.g. ci/v3) without breaking repos still written for the old shape.
 apiVersion: ci/v2
 
 metadata:
   # Identifier for the app. The workflow uses it to name the uploaded build
-  # artifact, the image repository, and (by default) the scanner project names.
   name: dotnet-sample-app
-
+  
   language: dotnet
 
   # Runtime version the scanners set up when they run tests/builds themselves.
@@ -39,7 +36,7 @@ build:
 test:
   # The test command. Stays in config because test runners and scripts differ per
   # app. If empty, the org test policy fails the pipeline (tests are mandatory —
-  # see org-policy.yml); it is not a way to opt out.
+  # see policy/pipeline-policy.yml); it is not a way to opt out.
   command: "dotnet test --configuration Release --no-build --collect:'XPlat Code Coverage'"
 
   # Path to the test project(s), for scanners that run the tests themselves.
