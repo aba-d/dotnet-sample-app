@@ -57,7 +57,6 @@ build:
   # app-specific and REQUIRED for anything downstream to use the build.
   artifactPath: "src/**/bin/Release/"
 
-
 test:
   # The test command. Stays in config because test runners and scripts differ per
   # app. If empty, the test stage is skipped.
