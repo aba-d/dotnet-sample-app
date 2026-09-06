@@ -5,7 +5,6 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - Feature-*
       - feature-*
       - main
 
@@ -15,7 +14,7 @@ concurrency:
 
 jobs:
   CI:
-    name: CI-Dev Pipeline
+    name: CI Pipeline
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ci-template.yml@feature-ciconfig
     with:
       config-path: ci-config/config.yml
