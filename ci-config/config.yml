@@ -50,7 +50,7 @@ build:
 
   # Directory the install/build/test commands run in. Template default is ".".
   # Set it when the app's code lives in a subfolder (e.g. "src").
-  workingDirectory: "src"
+  workingDirectory: "."
 
   # What to upload as the build artifact after a green build. This artifact is
   # the CI deliverable the separate <app>-deploy repo consumes, so the path is
