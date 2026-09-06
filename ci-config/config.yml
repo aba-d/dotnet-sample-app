@@ -1,0 +1,127 @@
+# =============================================================================
+#  CiConfig/config.yml  —  per-application CI values (annotated reference)
+#
+#  This file holds ONLY the values specific to THIS app. All pipeline logic and
+#  shared defaults live in the reusable workflow (ci-template.yml); it parses the
+#  keys below and runs: install -> lint -> build -> test -> publish artifact.
+#
+#  Guiding rule: if a value would be identical for every repo of a language, it
+#  belongs in the template as a default — not here. Keep this file small.
+#
+#  The concrete values below are for a Node service; comments note how each
+#  field generalizes to other languages.
+# =============================================================================
+
+
+# Version of THIS file's schema. Lets the reusable workflow evolve its parser
+# later (e.g. ci/v2) without breaking repos still written for the old shape.
+apiVersion: ci/v1
+
+
+metadata:
+  # Identifier for the app. The workflow uses it to name the uploaded build
+  # artifact (<name>-build) and to label logs, so every run is traceable to a
+  # specific application. REQUIRED.
+  name: sample-node-app
+
+  # Selects the pipeline path. The workflow uses this to pick the default
+  # install command, the CodeQL language pack, and shell behavior. REQUIRED.
+  # One of: node | dotnet | java | python | dotnet-framework
+  language: node
+
+  # Classifies the app: service | library | lambda | static-site. Informational
+  # today (inventory, dashboards, and future per-type behavior); CI runs without it.
+  type: service
+
+  # Owning team(s). Drives review routing and "who to ping when the build breaks".
+  # Not needed for CI to run, but important for operability.
+  owners: ["@org/frontend-platform"]
+
+
+build:
+  # NOTE: the install command is set centrally by the reusable workflow per
+  # language (node -> "npm ci", dotnet -> "dotnet restore", java -> Maven,
+  # python -> pip, dotnet-framework -> "nuget restore"). It is intentionally NOT
+  # an app-team setting, so there is no installCommand key here.
+
+  # How to compile/produce the app. Kept here (not in the template) because build
+  # targets and scripts genuinely vary from app to app. REQUIRED to produce output.
+  buildCommand: "npm run build"
+
+  # Directory the install/build/test commands run in. Template default is ".".
+  # Set it when the app's code lives in a subfolder (e.g. "src").
+  workingDirectory: "."
+
+  # What to upload as the build artifact after a green build. This artifact is
+  # the CI deliverable the separate <app>-deploy repo consumes, so the path is
+  # app-specific and REQUIRED for anything downstream to use the build.
+  artifactPath: "dist/"
+
+
+test:
+  # The test command. Stays in config because test runners and scripts differ per
+  # app. If empty, the test stage is skipped.
+  command: "npm test -- --ci"
+
+  coverage:
+    # Whether this app gates on coverage at all. Some apps (e.g. static sites)
+    # legitimately have none, so it is a per-app switch rather than a global rule.
+    enabled: true
+
+    # Minimum coverage %. Recorded here as the app's stated contract; the actual
+    # enforcement happens inside the test tool's own config (jest / JaCoCo /
+    # coverlet) which the `command` above invokes.
+    threshold: 80
+
+
+quality:
+  # Lint/format check command. Per-app because the tool and rules differ. Leave
+  # as "" to skip — the workflow skips empty commands (e.g. legacy repos).
+  lint: "npm run lint"
+
+  # OPTIONAL — a formatting check kept separate from lint so it can pass/fail
+  # independently of linting. Omit if the app has no separate format step.
+  format: "npm run format:check"
+
+
+security:
+  # Run dependency review on PRs (flags vulnerable or disallowed packages). A
+  # toggle so a repo with a different supply-chain gate can opt out.
+  dependencyScan: true
+
+  # Run secret scanning (gitleaks) to catch committed credentials. A toggle, but
+  # should be true for essentially every repo.
+  secretScan: true
+
+  # Run SAST static analysis (CodeQL). A toggle because some repos scan elsewhere.
+  # Note: CodeQL is skipped automatically for .NET Framework (Windows-only build).
+  sast: true
+
+
+ci:
+  runner:
+    # Which self-hosted fleet runs the heavy build:
+    #   codebuild -> AWS CodeBuild (runner label is built from `project` below)
+    #   k8s       -> Kubernetes / ARC (runner label is taken from `labels` below)
+    # This is the single knob to move a repo between fleets — no other change needed.
+    backend: codebuild
+
+    # OS the build requires. Use `linux` for everything except .NET Framework,
+    # which MUST be `windows`. This drives both runner selection and the shell
+    # used to run commands (bash on Linux, powershell on Windows).
+    os: linux
+
+    # The runner identifier — used for BOTH backends, so migrating fleets never
+    # reshapes this block:
+    #   backend: codebuild -> the workflow builds the runner label
+    #            codebuild-<labels>-<run_id>-<run_attempt>, so `labels` must be
+    #            the CodeBuild PROJECT name.
+    #   backend: k8s       -> `labels` is used as-is, so it must be the ARC
+    #            runner SCALE-SET name.
+    # Keep the CodeBuild project and the ARC scale set named identically so this
+    # value is the same on either fleet and only `backend` ever changes.
+    labels: sample-node-app-runner
+
+  # NOTE: the job timeout is set centrally by the reusable workflow (20 minutes,
+  # or 30 for Windows builds). It is intentionally NOT an app-team setting, so
+  # there is no timeoutMinutes key here.

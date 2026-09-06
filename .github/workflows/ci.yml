@@ -1,0 +1,25 @@
+name: CI Workflow
+description: CI pipeline for Dev environment - build, scan, test, package, and deploy to dev.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - Feature-*
+      - feature-*
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  CI:
+    name: CI-Dev Pipeline
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ci-template.yml@feature-ciconfig
+    with:
+      config-path: ci-config/config.yml
+      bootstrap-runner: arc-linux
+    permissions:
+      contents: read
+      security-events: write
