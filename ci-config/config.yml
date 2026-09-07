@@ -1,92 +1,40 @@
-
-apiVersion: ci/v2
+# Contract version for this file. ci/v1 today; a breaking format change ships as
+# ci/v2 so existing repos keep parsing. Unknown value fails validation.
+apiVersion: ci/v1
 
 metadata:
-  # Identifier for the app. The workflow uses it to name the uploaded build
-  name: dotnet-sample-app
-  
+  name: dotnet-sample-app          # app identifier; names the uploaded artifact
   language: dotnet
-
-  # Runtime version the scanners set up when they run tests/builds themselves.
-  languageVersion: "8.0"
-
-  # Classifies the app: service | library | lambda | static-site. Informational,
-  # but the workflow also uses it to decide which stages even apply (e.g. a
-  # static-site builds no image, so the image scan is skipped centrally).
-  type: service
+  languageVersion: "8.0"           # runtime the scanners set up for their own builds
+  type: service                    # service | library | job — also gates which stages apply
 
 build:
-  # How to compile/produce the app.
   buildCommand: "dotnet build --configuration Release --no-restore"
-
-  # Directory the restore/build/test commands run in. Template default is ".".
-  workingDirectory: "."
-
-  # What to upload as the build artifact after a green build.
-  artifactPath: "src/**/bin/Release/"
-
-  # Solution / main project path. Scanners that build the app themselves
-  # (SonarScanner for .NET, CodeQL autobuild) need this.
-  projectPath: "src/DotnetSampleApp.sln"
-
-  # Dockerfile for the runnable image. Leave "" for types that ship no image
-  # (library, static-site) — the workflow then skips image build + image scan.
-  dockerfilePath: "Dockerfile"
+  workingDirectory: "."            # where restore/build/test run (default ".")
+  artifactPath: "src/**/bin/Release/"   # uploaded as the build artifact
+  projectPath: "src/DotnetSampleApp.sln"  # solution path for Sonar/CodeQL autobuild
+  dockerfilePath: "Dockerfile"     # "" for types with no image → image build + scan skipped
 
 test:
-  # The test command. Stays in config because test runners and scripts differ per
-  # app. If empty, the org test policy fails the pipeline (tests are mandatory —
-  # see policy/pipeline-policy.yml); it is not a way to opt out.
   command: "dotnet test --configuration Release --no-build --collect:'XPlat Code Coverage'"
-
-  # Path to the test project(s), for scanners that run the tests themselves.
-  testProjectPath: "test/DotnetSampleApp.Tests.csproj"
-
-  # Where the workflow collects the coverage report to hand to the code-quality
-  # platform. Vendor-neutral — it is just a file glob.
-  coverageReport: "**/TestResults/**/coverage.cobertura.xml"
+  testProjectPath: "test/DotnetSampleApp.Tests.csproj"  # for scanners that run the tests
+  coverageReport: "**/TestResults/**/coverage.cobertura.xml"  # file glob handed to the QA platform
 
 quality:
-  # Lint/format check command. Per-app because the tool and rules differ. Leave
-  # as "" to skip — the workflow skips empty commands (e.g. legacy repos).
-  lint: "dotnet format --verify-no-changes"
+  lint: "dotnet format --verify-no-changes"   # "" to skip
 
 scan:
-  # Code-quality + coverage platform (SonarQube today).
-  codeQuality:
+  codeQuality:                     # SonarQube
     projectKey: dotnet-sample-app
     organizationKey: aba-enterprise
-
-  # SAST / application-security policy platform (Veracode today). Normally just
-  # the application profile name registered in that platform.
-  sast:
+  sast:                            # Veracode — profile name registered in the platform
     profile: dotnet-sample-app
-
-  # Container-image vulnerability scanner (Prisma today). The image the pipeline
-  # builds and the scanner inspects; defaults to metadata.name if omitted.
-  image:
+  image:                           # Prisma — image to scan; defaults to metadata.name
     repository: dotnet-sample-app
 
 ci:
   runner:
-    # Which self-hosted fleet runs the heavy build:
-    #   codebuild -> AWS CodeBuild (runner label is built from `labels` below)
-    #   k8s       -> Kubernetes / ARC (runner label is taken from `labels` below)
-    # This is the single knob to move a repo between fleets — no other change needed.
-    backend: codebuild
-
-    # OS the build requires. Use `linux` for everything except .NET Framework,
-    # which MUST be `windows`. This drives both runner selection and the shell
-    # used to run commands (bash on Linux, powershell on Windows).
-    os: linux
-
-    # The runner identifier — used for BOTH backends, so migrating fleets never
-    # reshapes this block:
-    #   backend: codebuild -> the workflow builds the runner label
-    #            codebuild-<labels>-<run_id>-<run_attempt>, so `labels` must be
-    #            the CodeBuild PROJECT name.
-    #   backend: k8s       -> `labels` is used as-is, so it must be the ARC
-    #            runner SCALE-SET name.
-    # Keep the CodeBuild project and the ARC scale set named identically so this
-    # value is the same on either fleet and only `backend` ever changes.
+    backend: codebuild             # codebuild | k8s — the only knob to switch fleets
+    os: linux                      # linux everywhere except .NET Framework (windows)
+    # Runner id for both fleets: CodeBuild project name / ARC scale-set name — keep them equal.
     labels: sample-node-app-runner
