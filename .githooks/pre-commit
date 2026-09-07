@@ -323,10 +323,21 @@ validate_dotnet_project() {
             return 1
         fi
         
-        # Run formatting validation
+        # Run formatting validation. If verify fails, try to auto-fix and stage changes.
         if ! dotnet format --verify-no-changes --verbosity quiet 2>/dev/null; then
-            log_error ".NET formatting validation failed - run 'dotnet format' to fix"
-            return 1
+            log_warning ".NET formatting validation detected issues; attempting to run 'dotnet format' to auto-fix"
+            # Try to auto-format the workspace
+            if dotnet format --verbosity minimal; then
+                # Stage any formatting fixes so the commit includes them
+                if git add -A; then
+                    log_success ".NET format applied and changes staged"
+                else
+                    log_warning "Formatting applied but failed to stage changes. You may need to 'git add' manually."
+                fi
+            else
+                log_error ".NET formatting validation failed and auto-format could not fix - run 'dotnet format' manually"
+                return 1
+            fi
         fi
         
         # Check for hardcoded connection strings

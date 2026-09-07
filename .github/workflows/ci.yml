@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature-*
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline:
+    name: Pipeline
+    uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ci-template.yml@feature-ciconfig
+    with:
+      config-path: ci-config/config.yml
+      bootstrap-runner: ubuntu-latest
+      environment: nonprod
+    permissions:
+      contents: read
+      security-events: write

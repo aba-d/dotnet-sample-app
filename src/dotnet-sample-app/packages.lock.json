@@ -30,6 +30,12 @@
           "Swashbuckle.AspNetCore.SwaggerUI": "6.6.2"
         }
       },
+      "VaultSharp": {
+        "type": "Direct",
+        "requested": "[1.16.0, )",
+        "resolved": "1.17.5",
+        "contentHash": "O7nSIR2Y0deisO3qt40fHvXxv6Vv6Wxs+1SmWE975rZ8wUphg0URGUMptwKXOa4C2ItQ84qMi0loXjVHFhrDGQ=="
+      },
       "Azure.Core": {
         "type": "Transitive",
         "resolved": "1.35.0",

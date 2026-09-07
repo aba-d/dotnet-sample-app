@@ -1,0 +1,25 @@
+# performance.yaml
+
+execution:
+  - concurrency: 2        # number of virtual users
+    ramp-up: 30s          # ramp users over 30 seconds
+    hold-for: 1m          # steady state duration
+    scenario: simple_ui
+
+scenarios:
+  simple_ui:
+    requests:
+      - url: http://dev-bluegreen-alb-815375486.us-east-2.elb.amazonaws.com/env
+        method: GET
+
+reporting:
+  - module: blazemeter
+    settings:
+      test-name: ${BZM_TEST_NAME}
+      project: ${BZM_PROJECT_NAME}
+      workspace: ${BZM_WORKSPACE_NAME}
+
+passfail:
+  - criteria:
+      - avg-rt > 500ms for 30s
+    fail: true

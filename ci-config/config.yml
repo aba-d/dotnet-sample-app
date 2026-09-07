@@ -1,0 +1,40 @@
+# Contract version for this file. ci/v1 today; a breaking format change ships as
+# ci/v2 so existing repos keep parsing. Unknown value fails validation.
+apiVersion: ci/v1
+
+metadata:
+  name: dotnet-sample-app          # app identifier; names the uploaded artifact
+  language: dotnet
+  languageVersion: "8.0"           # runtime the scanners set up for their own builds
+  type: service                    # service | library | job — also gates which stages apply
+
+build:
+  buildCommand: "dotnet build --configuration Release --no-restore"
+  workingDirectory: "."            # where restore/build/test run (default ".")
+  artifactPath: "src/**/bin/Release/"   # uploaded as the build artifact
+  projectPath: "src/DotnetSampleApp.sln"  # solution path for Sonar/CodeQL autobuild
+  dockerfilePath: "Dockerfile"     # "" for types with no image → image build + scan skipped
+
+test:
+  command: "dotnet test --configuration Release --no-build --collect:'XPlat Code Coverage'"
+  testProjectPath: "test/DotnetSampleApp.Tests.csproj"  # for scanners that run the tests
+  coverageReport: "**/TestResults/**/coverage.cobertura.xml"  # file glob handed to the QA platform
+
+quality:
+  lint: "dotnet format --verify-no-changes"   # "" to skip
+
+scan:
+  codeQuality:                     # SonarQube
+    projectKey: dotnet-sample-app
+    organizationKey: aba-enterprise
+  sast:                            # Veracode — profile name registered in the platform
+    profile: dotnet-sample-app
+  image:                           # Prisma — image to scan; defaults to metadata.name
+    repository: dotnet-sample-app
+
+ci:
+  runner:
+    backend: codebuild             # codebuild | k8s — the only knob to switch fleets
+    os: linux                      # linux everywhere except .NET Framework (windows)
+    # Runner id for both fleets: CodeBuild project name / ARC scale-set name — keep them equal.
+    labels: sample-node-app-runner
