@@ -19,6 +19,7 @@ jobs:
     with:
       config-path: ci-config/config.yml
       bootstrap-runner: ubuntu-latest
+      environment: nonprod
     permissions:
       contents: read
       security-events: write
