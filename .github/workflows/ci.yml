@@ -1,5 +1,4 @@
-name: CI Workflow
-description: CI pipeline for Dev environment - build, scan, test, package, and deploy to dev.
+name: CI
 
 on:
   workflow_dispatch:
@@ -13,8 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  CI:
-    name: CI Pipeline
+  pipeline:
+    name: Pipeline
     uses: aba-enterprise/enterprise-ci-templates/.github/workflows/ci-template.yml@feature-ciconfig
     with:
       config-path: ci-config/config.yml
